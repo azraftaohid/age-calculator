@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Age Calculator</string>
+    <string name="welcome_text">Welcome</string>
+    <string name="text_view_set_DOB">Let\'s set your date of birth first</string>
+    <string name="button_set_DOB">Set</string>
+    <string name="title_current_age">Your current age is</string>
+    <string name="saved_dob_key">com.example.agecalculator.dateofbirthkey</string>
+    <string name="saved_birth_year_key">com.example.agecalculator.birthyearkey</string>
+    <string name="saved_birth_year_default_key">-1</string>
+    <string name="saved_birth_month_key">com.example.agecalculator.birthmonthkey</string>
+    <string name="saved_birth_month_default_key">-1</string>
+    <string name="saved_birth_day_key">com.example.agecalculator.pref.birthdaykey</string>
+    <string name="saved_birth_day_default_key">-1</string>
+    <string name="pref_user_info_key">com.example.agecalculator.pref</string>
+    <string name="tag_date_picker_fragment">tag.birthdaypicker</string>
+    <string name="button_lets_go_title">Let\'s Go!</string>
+    <string name="display_chosed_date">%s %d, %d</string>
+
+    <!-- TODO Create a placeholder string to display current age -->
 </resources>
