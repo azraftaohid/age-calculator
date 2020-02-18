@@ -1,4 +1,4 @@
-package com.example.agecalculator;
+package com.coolninja.agecalculator;
 
 import org.junit.Test;
 
