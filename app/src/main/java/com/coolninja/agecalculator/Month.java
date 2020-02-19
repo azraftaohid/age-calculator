@@ -9,7 +9,7 @@ public enum Month {
     JUNE(30),
     JULY(31),
     AUGUST(31),
-    SPETEMBER(30),
+    SEPTEMBER(30),
     OCTOBER(31),
     NOVEMBER(30),
     DECEMBER(31);
