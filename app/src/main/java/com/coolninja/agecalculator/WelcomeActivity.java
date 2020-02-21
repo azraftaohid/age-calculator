@@ -2,52 +2,42 @@ package com.coolninja.agecalculator;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.TextView;
 
 import java.util.Calendar;
 
-public class WelcomeActivity extends AppCompatActivity {
-    private Calendar mDob;
+public class WelcomeActivity extends AppCompatActivity implements BirthDayPicker {
+    private TextView mChoseDateTextView;
     private Button mSetDobButton;
     private Button mDoneButton;
-    private TextView mChoseDateTextView;
+
+    private Calendar mDob;
 
     private SharedPreferences pref;
+    private BirthdayPickerDialog mBirthdayPicker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
 
-        pref = getSharedPreferences(getString(R.string.user_pref_key), Context.MODE_PRIVATE);
-        mDob = Calendar.getInstance();
         mSetDobButton = findViewById(R.id.bt_set_dob);
         mDoneButton = findViewById(R.id.bt_done);
         mChoseDateTextView = findViewById(R.id.tv_chosed_date);
+
+        pref = getSharedPreferences(getString(R.string.user_pref_key), Context.MODE_PRIVATE);
+        mDob = Calendar.getInstance();
+        mBirthdayPicker = BirthdayPickerDialog.newInstance();
     }
 
     public void showBirthDayPickerFragment(View view) {
-        DatePickerDialog datePicker = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                mDob.set(year, month, dayOfMonth);
-
-                mSetDobButton.setVisibility(View.GONE);
-                mDoneButton.setVisibility(View.VISIBLE);
-                mChoseDateTextView.setText(String.format(getString(R.string.display_chose_date), getMonth(month), dayOfMonth, year));
-                mChoseDateTextView.setVisibility(View.VISIBLE);
-            }
-        }, mDob.get(Calendar.YEAR), mDob.get(Calendar.MONTH), mDob.get(Calendar.DAY_OF_MONTH));
-
-        datePicker.show();
-
+        mBirthdayPicker.show(getSupportFragmentManager(), getString(R.string.birthday_picker_tag));
     }
 
     public void finishWelcomeActivity(View view) {
@@ -70,5 +60,21 @@ public class WelcomeActivity extends AppCompatActivity {
         };
 
         return months[index];
+    }
+
+    @Override
+    public void onBirthdayPick(int requestCode, int resultCode, Intent data) {
+        if (requestCode == Integer.valueOf(getString(R.string.dob_request)) && resultCode == RESULT_OK) {
+            int year = data.getIntExtra(getString(R.string.birth_year_key), Integer.valueOf(getString(R.string.default_birth_year_key)));
+            int month = data.getIntExtra(getString(R.string.birth_month_key), Integer.valueOf(getString(R.string.default_birth_month_key)));
+            int dayOfMonth = data.getIntExtra(getString(R.string.birth_day_key), Integer.valueOf(getString(R.string.default_birth_day_key)));
+
+            mDob.set(year, month, dayOfMonth);
+
+            mSetDobButton.setVisibility(View.GONE);
+            mDoneButton.setVisibility(View.VISIBLE);
+            mChoseDateTextView.setText(String.format(getString(R.string.display_chose_date), getMonth(month), dayOfMonth, year));
+            mChoseDateTextView.setVisibility(View.VISIBLE);
+        }
     }
 }

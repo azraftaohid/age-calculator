@@ -6,18 +6,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
-    private Calendar mDateOfBirth;
-
     private TextView mCurrentAgeTextView;
+
+    private Calendar mDateOfBirth;
     private SharedPreferences pref;
 
-    private final int EXPECTATION_RESULT_CODE = 1111;
-    private final int DOB_REQUEST = 1112;
+    static final int USER_DOB_REQUEST = 1111;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,15 +30,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_main);
+
         mCurrentAgeTextView = findViewById(R.id.tv_current_age);
+
         mDateOfBirth = Calendar.getInstance();
 
         if (pref.contains(getString(R.string.birth_day_key))) {
-            int birthDay = pref.getInt(getString(R.string.birth_day_key), Integer.parseInt(getString(R.string.default_birth_day_key)));
-            int birthMonth = pref.getInt(getString(R.string.birth_month_key), Integer.parseInt(getString(R.string.default_birth_month_key)));
-            int birthYear = pref.getInt(getString(R.string.birth_year_key), Integer.parseInt(getString(R.string.default_birth_year_key)));
-            mDateOfBirth.set(birthYear, birthMonth, birthDay);
-            displayAge();
+            updateUserBirthday(null);
         }
 
     }
@@ -63,21 +61,25 @@ public class MainActivity extends AppCompatActivity {
         mCurrentAgeTextView.setText(String.format(getString(R.string.display_age_years_months_days), ageYears, ageMonths, ageReminderDays));
     }
 
+    public void updateUserBirthday(View view) {
+        int birthDay = pref.getInt(getString(R.string.birth_day_key), Integer.parseInt(getString(R.string.default_birth_day_key)));
+        int birthMonth = pref.getInt(getString(R.string.birth_month_key), Integer.parseInt(getString(R.string.default_birth_month_key)));
+        int birthYear = pref.getInt(getString(R.string.birth_year_key), Integer.parseInt(getString(R.string.default_birth_year_key)));
+        mDateOfBirth.set(birthYear, birthMonth, birthDay);
+        displayAge();
+    }
+
     void launchWelcomeActivity() {
         Intent setUpIntent = new Intent(this, WelcomeActivity.class);
-        startActivityForResult(setUpIntent, DOB_REQUEST);
+        startActivityForResult(setUpIntent, USER_DOB_REQUEST);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == DOB_REQUEST && resultCode == RESULT_OK) {
-            int birthDay = pref.getInt(getString(R.string.birth_day_key), Integer.parseInt(getString(R.string.default_birth_day_key)));
-            int birthMonth = pref.getInt(getString(R.string.birth_month_key), Integer.parseInt(getString(R.string.default_birth_month_key)));
-            int birthYear = pref.getInt(getString(R.string.birth_year_key), Integer.parseInt(getString(R.string.default_birth_year_key)));
-            mDateOfBirth.set(birthYear, birthMonth, birthDay);
-            displayAge();
+        if (requestCode == USER_DOB_REQUEST && resultCode == RESULT_OK) {
+            updateUserBirthday(null);
         }
     }
 
