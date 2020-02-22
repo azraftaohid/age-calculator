@@ -2,63 +2,57 @@ package com.coolninja.agecalculator;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-import android.widget.DatePicker;
-
-import java.util.Calendar;
 import java.util.Objects;
 
-import static android.app.Activity.RESULT_OK;
+public class BirthdayPickerDialog extends DialogFragment {
+    private static final String YEAR = "year";
+    private static final String MONTH = "month";
+    private static final String DAY = "day";
 
-public class BirthdayPickerDialog extends DialogFragment implements DatePickerDialog.OnDateSetListener {
     private DatePickerDialog mDatePickerDialog;
+    private DatePickerDialog.OnDateSetListener mOnDateSetListener;
 
     public BirthdayPickerDialog() {
         // Required empty public constructor
     }
 
 
-    public static BirthdayPickerDialog newInstance(){
-        return new BirthdayPickerDialog();
+    public static BirthdayPickerDialog newInstance(DatePickerDialog.OnDateSetListener onDateSetListener, int year, int month, int day) {
+        BirthdayPickerDialog datePicker =  new BirthdayPickerDialog();
+        datePicker.setOnDateSetListener(onDateSetListener);
+
+        Bundle date = new Bundle();
+        date.putInt(YEAR, year);
+        date.putInt(MONTH, month);
+        date.putInt(DAY, day);
+
+        datePicker.setArguments(date);
+
+        return datePicker;
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Calendar c = Calendar.getInstance();
+        if (mDatePickerDialog == null) {
+            Bundle args = getArguments();
+            assert args != null : "No arguments found. Don't use the default constructor to initiate BirthdayPicker object. " +
+                    "Use static method instead";
 
-        int year = c.get(Calendar.YEAR);
-        int month = c.get(Calendar.MONTH);
-        int day = c.get(Calendar.DAY_OF_MONTH);
-
-        mDatePickerDialog = new DatePickerDialog(Objects.requireNonNull(getActivity()), this, year, month, day);
-
-        return mDatePickerDialog;
-    }
-
-    @Override
-    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra(getString(R.string.birth_year_key), year);
-        resultIntent.putExtra(getString(R.string.birth_month_key), month);
-        resultIntent.putExtra(getString(R.string.birth_day_key), dayOfMonth);
-
-        if (getActivity() != null) {
-            if (getActivity() instanceof BirthDayPicker) {
-                ((BirthDayPicker) getActivity()).onBirthdayPick(Integer.valueOf(getString(R.string.dob_request)), RESULT_OK, resultIntent);
-            }
-        } else if (getTargetFragment() != null) {
-            getTargetFragment().onActivityResult(getTargetRequestCode(), RESULT_OK, resultIntent);
+            mDatePickerDialog = new DatePickerDialog(Objects.requireNonNull(getActivity()), mOnDateSetListener,
+                    args.getInt(YEAR), args.getInt(MONTH), args.getInt(DAY));
         }
+
+        return mDatePickerDialog;
     }
 
-    public DatePickerDialog getDatePickerDialog() {
-        return mDatePickerDialog;
+    public void setOnDateSetListener(DatePickerDialog.OnDateSetListener onDateSetListener) {
+        this.mOnDateSetListener = onDateSetListener;
     }
 }

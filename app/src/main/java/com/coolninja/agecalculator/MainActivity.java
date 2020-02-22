@@ -120,4 +120,5 @@ public class MainActivity extends AppCompatActivity {
             return (startMonth.getNumberOfDays() - startDay) + endDay;
         }
     }
+
 }
