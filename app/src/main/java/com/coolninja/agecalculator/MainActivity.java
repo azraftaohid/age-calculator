@@ -1,12 +1,17 @@
 package com.coolninja.agecalculator;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.DatePicker;
 import android.widget.TextView;
 
 import java.util.Calendar;
@@ -14,11 +19,14 @@ import java.util.Calendar;
 public class MainActivity extends AppCompatActivity {
     private TextView mCurrentAgeTextView;
 
+    private BirthdayPickerDialog mBirthdayPicker;
     private Calendar mDateOfBirth;
     private SharedPreferences pref;
 
     static final int USER_DOB_REQUEST = 1111;
 
+    //TODO Add ability to choose between different age viewing formats
+    //TODO Add ability to add more users birthday
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +47,21 @@ public class MainActivity extends AppCompatActivity {
             updateUserBirthday(null);
         }
 
+        mBirthdayPicker = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                SharedPreferences.Editor editor = pref.edit();
+
+                editor.putInt(getString(R.string.birth_year_key), year);
+                editor.putInt(getString(R.string.birth_month_key), month);
+                editor.putInt(getString(R.string.birth_day_key), dayOfMonth);
+
+                editor.apply();
+
+                updateUserBirthday(null);
+            }
+        }, mDateOfBirth.get(Calendar.YEAR), mDateOfBirth.get(Calendar.MONTH), mDateOfBirth.get(Calendar.DAY_OF_MONTH));
+
     }
 
     private void displayAge() {
@@ -50,7 +73,8 @@ public class MainActivity extends AppCompatActivity {
         int ageDays = Long.valueOf((ageInMillis / toDaysDivider) % 365).intValue() - getNumberOfLeapDays(mDateOfBirth, c);
         int ageReminderDays = getDurationInDays(Month.values()[c.get(Calendar.MONTH)],
                 mDateOfBirth.get(Calendar.DAY_OF_MONTH), c.get(Calendar.DAY_OF_MONTH));
-        int ageMonths = getDurationInMonths(mDateOfBirth.get(Calendar.MONTH), c.get(Calendar.MONTH));
+        int ageMonths = getDurationInMonths(mDateOfBirth.get(Calendar.MONTH), c.get(Calendar.MONTH),
+                mDateOfBirth.get(Calendar.DAY_OF_MONTH) > c.get(Calendar.DAY_OF_MONTH));
         int ageYears = Double.valueOf(Math.floor(ageInMillis / toYearsDivider)).intValue();
 
         if (ageDays < 0) {
@@ -59,6 +83,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
         mCurrentAgeTextView.setText(String.format(getString(R.string.display_age_years_months_days), ageYears, ageMonths, ageReminderDays));
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.menu_change_dob) {
+            mBirthdayPicker.show(getSupportFragmentManager(), getString(R.string.birthday_picker_tag));
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     public void updateUserBirthday(View view) {
@@ -109,15 +149,24 @@ public class MainActivity extends AppCompatActivity {
         return (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0));
     }
 
-    private int getDurationInMonths(int startMonth, int endMonth) {
-        return (endMonth - startMonth) >= 0 ? endMonth - startMonth : 12 - (startMonth - endMonth);
+    private int getDurationInMonths(int startMonth, int endMonth, boolean isStartDateGreaterThanEndDate) {
+        if (endMonth > startMonth) {
+            return endMonth - startMonth;
+        } else if (endMonth < startMonth) {
+            return 12 - (startMonth - endMonth);
+        } else if (isStartDateGreaterThanEndDate) { //and startMonth == endMonth
+            return 11; //If you were born after a date in the same month, you're 11 months and a few days old on that day
+        } else { //startMonth == endMonth and you were born before or on that day of the month
+            return 0;
+        }
     }
 
     private int getDurationInDays(Month startMonth, int startDay, int endDay) {
         if (endDay > startDay) {
             return endDay - startDay;
         } else {
-            return (startMonth.getNumberOfDays() - startDay) + endDay;
+            int days = (startMonth.getNumberOfDays() - startDay) + endDay;
+            return days == startMonth.getNumberOfDays()? 0 : days;
         }
     }
 

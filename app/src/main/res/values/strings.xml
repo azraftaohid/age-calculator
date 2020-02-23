@@ -20,6 +20,8 @@
     <string name="expectation_result_code">com.coolninja.agecalculator.result_code.EXPECTATION</string>
     <string name="display_age_year_days">%d years, %d days.</string>
     <string name="display_age_years_months_days">%d years, %d months, %d days</string>
-    
+
+    <string name="menu_change_dob_title">Change date of birth</string>
+
     <string name="dob_request">1112</string>
 </resources>
