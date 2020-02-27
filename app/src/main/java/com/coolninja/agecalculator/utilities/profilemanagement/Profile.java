@@ -51,16 +51,16 @@ public class Profile {
 
     private void calculateAge() {
         Calendar c = Calendar.getInstance();
-        long toDaysDivider = 1000 * 60 * 60 * 24; //millis to seconds to minutes to days
-        long toYearsDivider = toDaysDivider * 365; //365 is important and can not be 366
+        long toDaysDivisor = 1000 * 60 * 60 * 24; //millis to seconds to minutes to days
+        long toYearsDivisor = toDaysDivisor * 365; //365 is important and can not be 366
 
         long ageInMillis = c.getTimeInMillis() - mDateOfBirth.getTimeInMillis();
-        mAgeInYearDays = Long.valueOf((ageInMillis / toDaysDivider) % 365).intValue() - getNumberOfLeapDays(mDateOfBirth, c);
-        mAgeInMonthDays = getDurationInDays(Month.values()[c.get(Calendar.MONTH)],
+        mAgeInYearDays = Long.valueOf((ageInMillis / toDaysDivisor) % 365).intValue() - getNumberOfLeapDays(mDateOfBirth, c);
+        mAgeInMonthDays = getDurationInDays(Month.values()[mDateOfBirth.get(Calendar.MONTH)],
                 mDateOfBirth.get(Calendar.DAY_OF_MONTH), c.get(Calendar.DAY_OF_MONTH));
         mAgeInYearMonth = getDurationInMonths(mDateOfBirth.get(Calendar.MONTH), c.get(Calendar.MONTH),
                 mDateOfBirth.get(Calendar.DAY_OF_MONTH) > c.get(Calendar.DAY_OF_MONTH));
-        mAgeInYear = Double.valueOf(Math.floor((float) ageInMillis / toYearsDivider)).intValue();
+        mAgeInYear = Double.valueOf(Math.floor((float) ageInMillis / toYearsDivisor)).intValue();
 
         if (mAgeInYearDays < 0) {
             mAgeInYear--;
@@ -74,6 +74,8 @@ public class Profile {
 
     private int getDurationInMonths(int startMonth, int endMonth, boolean isStartDateGreaterThanEndDate) {
         if (endMonth > startMonth) {
+            if (isStartDateGreaterThanEndDate)
+                return endMonth - (startMonth + 1);
             return endMonth - startMonth;
         } else if (endMonth < startMonth) {
             return 12 - (startMonth - endMonth);
