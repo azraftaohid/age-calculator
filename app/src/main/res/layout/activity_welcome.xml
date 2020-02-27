@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".WelcomeActivity">
+    tools:context=".ui.WelcomeActivity">
 
     <TextView
         android:id="@+id/tv_welcome"
@@ -56,16 +56,6 @@
             android:visibility="gone" />
 
         <Button
-            android:id="@+id/bt_set_dob"
-            style="@style/Widget.UIFabric.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"
-            android:onClick="showBirthDayPickerFragment"
-            android:text="@string/button_set_DOB" />
-
-        <Button
             android:id="@+id/bt_done"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -74,6 +64,17 @@
             android:onClick="finishWelcomeActivity"
             android:text="@string/button_lets_go_title"
             android:visibility="gone" />
+
+        <Button
+            android:id="@+id/bt_set_dob"
+            style="@style/Widget.UIFabric.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:onClick="showBirthDayPickerFragment"
+            android:text="@string/set_birthday" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,4 +1,4 @@
-package com.coolninja.agecalculator;
+package com.coolninja.agecalculator.utilities;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;

@@ -2,26 +2,29 @@
     <string name="app_name">Age Calculator</string>
     <string name="welcome_text">Welcome</string>
     <string name="set_user_dob_title">Let\'s set your date of birth first</string>
-    <string name="button_set_DOB">Set</string>
+    <string name="set_birthday">Set Birthday</string>
     <string name="current_age_title">Your current age is: </string>
-    <string name="birth_year_key">com.coolninja.agecalculator.user.pref.birthyearkey</string>
-    <string name="temp_birth_year_key">com.coolninja.agecalculator.user.pref.tempbirthyearkey</string>
+    <string name="birth_ymd_key">com.coolninja.agecalculator.user.pref.%d%d</string>
+    <string name="birth_year_key">com.coolninja.agecalculator.user.pref.birthyearkeyforprofile%s</string>
     <string name="default_birth_year_key">-1</string>
-    <string name="birth_month_key">com.coolninja.agecalculator.user.pref.birthmonthkey</string>
-    <string name="temp_birth_month_key">com.coolninja.agecalculator.user.pref.tempbirthmonthkey</string>
+    <string name="birth_month_key">com.coolninja.agecalculator.user.pref.birthmonthkeyforprofile%s</string>
     <string name="default_birth_month_key">-1</string>
-    <string name="birth_day_key">com.coolninja.agecalculator.user.pref.birthdaykey</string>
-    <string name="temp_birth_day_key">com.coolninja.agecalculator.user.pref.tempbirthdaykey</string>
+    <string name="birth_day_key">com.coolninja.agecalculator.user.pref.birthdaykeyforprofile%s</string>
     <string name="default_birth_day_key">-1</string>
-    <string name="user_pref_key">com.coolninja.agecalculator..agecalculator.user.pref</string>
-    <string name="birthday_picker_tag">com.coolninja.agecalculator.tag.birthdaypicker</string>
+    <string name="user_pref_key">com.coolninja.agecalculator.agecalculator.user.pref</string>
+    <string name="birthday_picker_tag">com.coolninja.agecalculator.tag.birthdaypickerforprofile%d</string>
     <string name="button_lets_go_title">Let\'s Go!</string>
     <string name="display_chose_date">%s %d, %d</string>
     <string name="expectation_result_code">com.coolninja.agecalculator.result_code.EXPECTATION</string>
     <string name="display_age_year_days">%d years, %d days.</string>
     <string name="display_age_years_months_days">%d years, %d months, %d days</string>
-
     <string name="menu_change_dob_title">Change date of birth</string>
-
+    <string name="primary_user_name">Primary User</string>
     <string name="dob_request">1112</string>
+    <string name="add_new_profile_title">Create Profile</string>
+    <string name="add_new_profile_hint">MM/DD/YYYY</string>
+    <string name="add_profile">Create</string>
+    <string name="cancel">Cancel</string>
+    <string name="set_name">Set Name</string>
+    <string name="default_error_value">-1</string>
 </resources>

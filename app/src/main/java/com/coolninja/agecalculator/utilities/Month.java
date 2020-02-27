@@ -1,4 +1,4 @@
-package com.coolninja.agecalculator;
+package com.coolninja.agecalculator.utilities;
 
 public enum Month {
     JANUARY(31),

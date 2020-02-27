@@ -1,16 +1,17 @@
-package com.coolninja.agecalculator;
+package com.coolninja.agecalculator.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.DatePickerDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.TextView;
+
+import com.coolninja.agecalculator.utilities.BirthdayPickerDialog;
+import com.coolninja.agecalculator.R;
 
 import java.util.Calendar;
 
@@ -21,7 +22,6 @@ public class WelcomeActivity extends AppCompatActivity {
 
     private Calendar mDob;
 
-    private SharedPreferences pref;
     private BirthdayPickerDialog mBirthdayPicker;
 
     @Override
@@ -33,7 +33,6 @@ public class WelcomeActivity extends AppCompatActivity {
         mDoneButton = findViewById(R.id.bt_done);
         mChoseDateTextView = findViewById(R.id.tv_chosed_date);
 
-        pref = getSharedPreferences(getString(R.string.user_pref_key), Context.MODE_PRIVATE);
         mDob = Calendar.getInstance();
         Calendar cal = Calendar.getInstance();
         mBirthdayPicker = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
@@ -54,15 +53,12 @@ public class WelcomeActivity extends AppCompatActivity {
     }
 
     public void finishWelcomeActivity(View view) {
-        SharedPreferences.Editor editor = pref.edit();
+        Intent returnIntent = new Intent();
+        returnIntent.putExtra(MainActivity.EXTRA_YEAR, mDob.get(Calendar.YEAR));
+        returnIntent.putExtra(MainActivity.EXTRA_MONTH, mDob.get(Calendar.MONTH));
+        returnIntent.putExtra(MainActivity.EXTRA_DAY, mDob.get(Calendar.DAY_OF_MONTH));
 
-        editor.putInt(getString(R.string.birth_year_key), mDob.get(Calendar.YEAR));
-        editor.putInt(getString(R.string.birth_month_key), mDob.get(Calendar.MONTH));
-        editor.putInt(getString(R.string.birth_day_key), mDob.get(Calendar.DAY_OF_MONTH));
-
-        editor.apply();
-
-        setResult(RESULT_OK);
+        setResult(RESULT_OK, returnIntent);
         finish();
     }
 

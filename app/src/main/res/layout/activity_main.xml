@@ -4,7 +4,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".ui.MainActivity">
+
+    <com.microsoft.officeuifabric.persona.PersonaView
+        android:id="@+id/pv_primary_user"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:avatarSize="large"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:name="@string/primary_user_name" />
 
     <TextView
         android:id="@+id/tv_title_current_age"
@@ -14,6 +27,7 @@
         android:layout_marginTop="16dp"
         android:text="@string/current_age_title"
         android:textAppearance="@style/TextAppearance.UIFabric.Heading"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -24,7 +38,41 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:textAppearance="@style/TextAppearance.UIFabric.Headline"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_title_current_age" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pv_primary_user">
+
+<!--        <LinearLayout-->
+<!--            android:id="@+id/ll_persona_layout"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginTop="16dp"-->
+<!--            android:orientation="vertical" />-->
+
+        <com.microsoft.officeuifabric.persona.PersonaListView
+            android:id="@+id/lv_persona"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </ScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:clickable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/ic_action_add"
+        android:focusable="true" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

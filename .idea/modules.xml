@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/AgeCalculator.iml" filepath="$PROJECT_DIR$/AgeCalculator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/AgeCalculator-app.iml" filepath="$PROJECT_DIR$/app/AgeCalculator-app.iml" group="AgeCalculator/app" />
+      <module fileurl="file://$PROJECT_DIR$/Android-AgeCalculator.iml" filepath="$PROJECT_DIR$/Android-AgeCalculator.iml" group="AgeCalculator" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
