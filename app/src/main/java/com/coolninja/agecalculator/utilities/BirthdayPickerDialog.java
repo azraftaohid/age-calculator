@@ -3,6 +3,7 @@ package com.coolninja.agecalculator.utilities;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.os.Bundle;
+import android.widget.DatePicker;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,7 +44,7 @@ public class BirthdayPickerDialog extends DialogFragment {
         if (mDatePickerDialog == null) {
             Bundle args = getArguments();
             assert args != null : "No arguments found. Don't use the default constructor to initiate BirthdayPicker object. " +
-                    "Use static method instead";
+                    "Use the static method instead";
 
             mDatePickerDialog = new DatePickerDialog(Objects.requireNonNull(getActivity()), mOnDateSetListener,
                     args.getInt(YEAR), args.getInt(MONTH), args.getInt(DAY));

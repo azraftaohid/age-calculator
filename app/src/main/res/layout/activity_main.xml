@@ -6,73 +6,72 @@
     android:layout_height="match_parent"
     tools:context=".ui.MainActivity">
 
-    <com.microsoft.officeuifabric.persona.PersonaView
-        android:id="@+id/pv_primary_user"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:avatarSize="large"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:name="@string/primary_user_name" />
-
     <TextView
-        android:id="@+id/tv_title_current_age"
+        android:id="@+id/tv_pinned_profiles"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:text="@string/current_age_title"
-        android:textAppearance="@style/TextAppearance.UIFabric.Heading"
-        android:visibility="gone"
+        android:text="@string/pinned"
+        android:textAppearance="@style/TextAppearance.UIFabric.ListItemTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <ScrollView
+        android:id="@+id/sv_pinned"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/tv_pinned_profiles">
+
+        <LinearLayout
+            android:id="@+id/ll_pinned_profiles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
     <TextView
-        android:id="@+id/tv_current_age"
+        android:id="@+id/tv_other_profiles"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:textAppearance="@style/TextAppearance.UIFabric.Headline"
-        android:visibility="gone"
+        android:text="@string/other_profiles"
+        android:textAppearance="@style/TextAppearance.UIFabric.ListItemTitle"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_title_current_age" />
+        app:layout_constraintTop_toBottomOf="@+id/sv_pinned" />
 
     <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:id="@+id/sv_others"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pv_primary_user">
-
-<!--        <LinearLayout-->
-<!--            android:id="@+id/ll_persona_layout"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_marginTop="16dp"-->
-<!--            android:orientation="vertical" />-->
-
-        <com.microsoft.officeuifabric.persona.PersonaListView
-            android:id="@+id/lv_persona"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    </ScrollView>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:clickable="true"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/ic_action_add"
-        android:focusable="true" />
+        app:layout_constraintTop_toBottomOf="@+id/tv_other_profiles">
+
+        <LinearLayout
+            android:id="@+id/ll_other_profiles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_profile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="showAddProfileDialog"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_action_add" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

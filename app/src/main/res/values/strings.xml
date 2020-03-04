@@ -6,11 +6,11 @@
     <string name="current_age_title">Your current age is: </string>
     <string name="birth_ymd_key">com.coolninja.agecalculator.user.pref.%d%d</string>
     <string name="birth_year_key">com.coolninja.agecalculator.user.pref.birthyearkeyforprofile%s</string>
-    <string name="default_birth_year_key">-1</string>
+    <string name="default_birth_year">-1</string>
     <string name="birth_month_key">com.coolninja.agecalculator.user.pref.birthmonthkeyforprofile%s</string>
-    <string name="default_birth_month_key">-1</string>
+    <string name="default_birth_month">-1</string>
     <string name="birth_day_key">com.coolninja.agecalculator.user.pref.birthdaykeyforprofile%s</string>
-    <string name="default_birth_day_key">-1</string>
+    <string name="default_birth_day">-1</string>
     <string name="user_pref_key">com.coolninja.agecalculator.agecalculator.user.pref</string>
     <string name="birthday_picker_tag">com.coolninja.agecalculator.tag.birthdaypickerforprofile%d</string>
     <string name="button_lets_go_title">Let\'s Go!</string>
@@ -23,8 +23,15 @@
     <string name="dob_request">1112</string>
     <string name="add_new_profile_title">Create Profile</string>
     <string name="add_new_profile_hint">MM/DD/YYYY</string>
+    <string name="short_date_format">%d/%d/%d</string>
     <string name="add_profile">Create</string>
     <string name="cancel">Cancel</string>
     <string name="set_name">Set Name</string>
     <string name="default_error_value">-1</string>
+    <string name="add_profile_dialog_tag">com.coolninja.agecalculator.tag.addprofile</string>
+    <string name="name">Name</string>
+    <string name="invalid_name_input">Please choose a valid name</string>
+    <string name="pinned">Pinned</string>
+    <string name="other_profiles">Others</string>
+    <string name="default_name">-1</string>
 </resources>

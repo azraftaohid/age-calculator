@@ -3,9 +3,6 @@ package com.coolninja.agecalculator.utilities.profilemanagement;
 import android.app.DatePickerDialog;
 import android.widget.DatePicker;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import com.coolninja.agecalculator.utilities.BirthdayPickerDialog;
 import com.coolninja.agecalculator.utilities.Age;
 import com.coolninja.agecalculator.utilities.Month;
@@ -13,7 +10,8 @@ import com.coolninja.agecalculator.utilities.Month;
 import java.util.Calendar;
 
 public class Profile {
-    private int mId = -1;
+    static final int DEFAULT_ERROR_CODE = -1;
+    private int mId = DEFAULT_ERROR_CODE;
     private String mName;
     private Calendar mDateOfBirth;
     private int mAgeInYear;
@@ -22,8 +20,10 @@ public class Profile {
     private int mAgeInYearDays;
 
     private BirthdayPickerDialog mBirthdayPicker;
+    private ProfileManagerInterface.onProfileUpdateListener mProfileUpdateListener;
 
     public Profile() {
+        mId = ProfileManager.generateProfileId();
         Calendar current = Calendar.getInstance();
         mBirthdayPicker = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -35,18 +35,39 @@ public class Profile {
         }, current.get(Calendar.YEAR), current.get(Calendar.MONTH), current.get(Calendar.DAY_OF_MONTH));
     }
 
-    public Profile(@Nullable String name, @NonNull Calendar dateOfBirth) {
-        mName = name;
-        mDateOfBirth = dateOfBirth;
+    public Profile(String name, Calendar dateOfBirth, ProfileManagerInterface.onProfileUpdateListener onProfileUpdateListener) {
+        mProfileUpdateListener = onProfileUpdateListener;
+        mId = ProfileManager.generateProfileId();
+        setName(name);
+        setDateOfBirth(dateOfBirth);
 
         mBirthdayPicker = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                mDateOfBirth.set(Calendar.YEAR, year);
-                mDateOfBirth.set(Calendar.MONTH, month);
-                mDateOfBirth.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                Calendar newDateOfBirth = Calendar.getInstance();
+                newDateOfBirth.set(Calendar.YEAR, year);
+                newDateOfBirth.set(Calendar.MONTH, month);
+                newDateOfBirth.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                setDateOfBirth(newDateOfBirth);
             }
         }, dateOfBirth.get(Calendar.YEAR), dateOfBirth.get(Calendar.MONTH), dateOfBirth.get(Calendar.DAY_OF_MONTH));
+    }
+
+    public void setName(String newName) {
+        String previousName = mName;
+        mName = newName;
+
+        if (mProfileUpdateListener != null)
+            mProfileUpdateListener.onProfileNameChange(mId, newName, previousName);
+    }
+
+    public void setDateOfBirth(Calendar newDateOfBirth) {
+        Calendar previousDob = getDateOfBirth();
+        mDateOfBirth = newDateOfBirth;
+
+        if (mProfileUpdateListener != null)
+            mProfileUpdateListener.onProfileDateOfBirthChange(mId, newDateOfBirth, previousDob);
     }
 
     private void calculateAge() {
@@ -123,10 +144,6 @@ public class Profile {
         return new Age(mAgeInYear, mAgeInYearMonth, mAgeInMonthDays);
     }
 
-    void setName(String name) {
-        mName = mName;
-    }
-
     public String getName() {
         return mName;
     }
@@ -139,10 +156,6 @@ public class Profile {
         return mBirthdayPicker;
     }
 
-    void setId(int id) {
-        mId = id;
-    }
-
     public int getId() {
         return mId;
     }
@@ -151,7 +164,8 @@ public class Profile {
         return mDateOfBirth;
     }
 
-    void setDateOfBirth(Calendar dateOfBirth) {
-        this.mDateOfBirth = dateOfBirth;
+    void setId(int id) {
+        mId = id;
     }
+
 }
