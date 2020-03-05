@@ -27,9 +27,10 @@ import java.util.Objects;
 public class AddProfileDialog extends DialogFragment {
     private OnNewProfileAddedListener mOnNewProfileAdded;
 
-    private View mRoot;
     private EditText mDobEditText;
     private EditText mNameEditText;
+    private String mEnteredName;
+    private String mEnteredDateOfBirth;
 
     private BirthdayPickerDialog mBirthdayPicker;
 
@@ -51,6 +52,7 @@ public class AddProfileDialog extends DialogFragment {
                 addProfileDialog.mDobEditText.setText(String.format(Locale.ENGLISH,
                         Objects.requireNonNull(addProfileDialog.getActivity()).getString(R.string.short_date_format),
                         month + 1, dayOfMonth, year));
+                addProfileDialog.mDobEditText.setSelection(addProfileDialog.mDobEditText.length());
             }
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
 
@@ -64,11 +66,14 @@ public class AddProfileDialog extends DialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
-        mRoot = inflater.inflate(R.layout.dialog_add_profile, null);
+        View mRoot = inflater.inflate(R.layout.dialog_add_profile, null);
 
         mDobEditText = mRoot.findViewById(R.id.et_dob_new_profile);
         mNameEditText = mRoot.findViewById(R.id.et_name_new_profile);
         final TextView errorMessageTextView = mRoot.findViewById(R.id.tv_error_choosing_name);
+
+        if (mEnteredName != null) mNameEditText.setText(mEnteredName);
+        if (mEnteredDateOfBirth != null) mDobEditText.setText(mEnteredDateOfBirth);
 
         mDobEditText.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,7 +114,9 @@ public class AddProfileDialog extends DialogFragment {
                 .setPositiveButton(R.string.add_profile, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String[] mmddyyyy = mDobEditText.getText().toString().split("/");
+                        mEnteredName = mNameEditText.getText().toString();
+                        mEnteredDateOfBirth = mDobEditText.getText().toString();
+                        String[] mmddyyyy = mEnteredDateOfBirth.split("/");
 
                         int month = Integer.parseInt(mmddyyyy[0]) - 1;
                         int day = Integer.parseInt(mmddyyyy[1]);
@@ -117,7 +124,7 @@ public class AddProfileDialog extends DialogFragment {
 
                         Calendar c = Calendar.getInstance();
                         c.set(year, month, day);
-                        mOnNewProfileAdded.onSubmit(mNameEditText.getText().toString(), c);
+                        mOnNewProfileAdded.onSubmit(mEnteredName, c);
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {

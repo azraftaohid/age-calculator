@@ -20,8 +20,8 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdateLi
     private static final String BIRTH_DAY_KEY = "com.coolninja.agecalculator.pref.PROFILEMANAGER.BIRTHDAYKEYFORPROFILE%d";
     private static final String PROFILE_IDS_KEY = "com.coolninja.agecalculator.pref.PROFILEMANAGER.IDs";
     private static final String PINNED_PROFILE_IDS_KEY = "com.coolninja.agecalculator.agecalculator.pref.PROFILEMANAGER.PINNEDPROFILEIDS";
-
     private static final String LOG_TAG = ProfileManager.class.getSimpleName();
+
     private final int DEFAULT_ERROR_CODE;
 
     private static int nextProfileId;
@@ -198,5 +198,9 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdateLi
 
     static int generateProfileId() {
         return nextProfileId++;
+    }
+
+    public boolean isProfilePinned(int profileId) {
+        return mPinnedIds.contains(profileId);
     }
 }

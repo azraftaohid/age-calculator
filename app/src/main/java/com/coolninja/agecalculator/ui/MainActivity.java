@@ -4,9 +4,14 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.coolninja.agecalculator.utilities.AddProfileDialog;
 import com.coolninja.agecalculator.R;
@@ -25,19 +30,34 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     public static final String EXTRA_YEAR = "com.coolninja.agecalculator.extra.YEAR";
     public static final String EXTRA_MONTH = "com.coolninja.agecalculator.extra.MONTH";
     public static final String EXTRA_DAY = "com.coolninja.agecalculator.extra.DAY";
+    private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
     private LinearLayout mPinnedProfilesListView;
     private LinearLayout mOtherProfilesListView;
+    private TextView mPinnedProfilesTextView;
+    private TextView mOtherProfilesTextView;
+    private ScrollView mPinnedProfilesScrollView;
+    private ScrollView mOtherProfilesScrollView;
 
     private ProfileManager mProfileManager;
 
     private int mDefaultErrorCode;
     static final int DEFAULT_DOB_REQUEST = 1111;
 
+    //TODO implement a way to show popup when clicked on accessory view
     //TODO Add ability to choose between different age viewing formats
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        mDefaultErrorCode = Integer.parseInt(getString(R.string.default_error_value));
+        mPinnedProfilesListView = findViewById(R.id.ll_pinned_profiles);
+        mOtherProfilesListView = findViewById(R.id.ll_other_profiles);
+        mPinnedProfilesTextView = findViewById(R.id.tv_pinned_profiles);
+        mOtherProfilesTextView = findViewById(R.id.tv_other_profiles);
+        mPinnedProfilesScrollView = findViewById(R.id.sv_pinned);
+        mOtherProfilesScrollView = findViewById(R.id.sv_others);
 
         mProfileManager = ProfileManager.getProfileManager(this);
 
@@ -45,14 +65,8 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
             launchWelcomeActivity();
         }
 
-        setContentView(R.layout.activity_main);
-
-        mDefaultErrorCode = Integer.parseInt(getString(R.string.default_error_value));
-        mPinnedProfilesListView = findViewById(R.id.ll_pinned_profiles);
-        mOtherProfilesListView = findViewById(R.id.ll_other_profiles);
-
         if (mProfileManager.getProfiles().size() != 0) {
-            refreshProfileViews();
+            reRegisterProfileViews();
         }
 
     }
@@ -88,16 +102,11 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
                 });
 
                 mProfileManager.addProfile(profile);
-                PersonaView personaView = new PersonaView(this);
-                Age age = profile.getAge();
-
-                personaView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT));
-                personaView.setName(profile.getName());
-                personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
-                        age.getYear(), age.getMonth(), age.getDay()));
-                personaView.setId(profile.getId());
+                PersonaView personaView = generateProfileView(profile);
                 mOtherProfilesListView.addView(personaView);
+                mProfileManager.pinProfile(profile.getId(), true);
+
+                synchronizeVisibleStatus();
             }
         }
     }
@@ -106,55 +115,71 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         AddProfileDialog.newInstance().show(getSupportFragmentManager(), getString(R.string.add_profile_dialog_tag));
     }
 
-    private void refreshProfileViews() {
+    private void reRegisterProfileViews() {
+        mPinnedProfilesListView.removeAllViews();
+        mOtherProfilesListView.removeAllViews();
+
         for (Profile profile : mProfileManager.getProfiles()) {
-            Age age = profile.getAge();
-            PersonaView personaView = new PersonaView(this);
+            PersonaView personaView = generateProfileView(profile);
 
-            personaView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT));
-            personaView.setName(profile.getName());
-            personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
-                    age.getYear(), age.getMonth(), age.getDay()));
-            personaView.setId(profile.getId());
-
-            if (mProfileManager.getPinnedProfileIds().contains(profile.getId()))
+            if (mProfileManager.isProfilePinned(profile.getId()))
                 mPinnedProfilesListView.addView(personaView);
             else
                 mOtherProfilesListView.addView(personaView);
-
         }
+
+        synchronizeVisibleStatus();
     }
 
-    private void updateViewForProfile(int profileId) {
+    private PersonaView generateProfileView(Profile profile) {
+        PersonaView personaView = new PersonaView(this);
+        Age age = profile.getAge();
+
+        personaView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT));
+        personaView.setName(profile.getName());
+        personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
+                age.getYear(), age.getMonth(), age.getDay()));
+        personaView.setCustomAccessoryView(getCustomAccessoryView(getDrawable(R.drawable.ic_more_vertical)));
+        personaView.setLongClickable(true);
+        personaView.setId(profile.getId());
+
+        return personaView;
+    }
+
+    private PersonaView getPersonaViewById(int id) {
         for (int i = 0; i < mPinnedProfilesListView.getChildCount(); i++) {
             PersonaView personaView = (PersonaView) mPinnedProfilesListView.getChildAt(i);
-
-            if (personaView.getId() == profileId) {
-                Profile profile = mProfileManager.getProfileById(profileId);
-                Age age = profile.getAge();
-
-                personaView.setName(profile.getName());
-                personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
-                        age.getYear(), age.getMonth(), age.getDay()));
-                return;
-            }
+            if (personaView.getId() == id)
+                return personaView;
         }
 
         for (int i = 0; i < mOtherProfilesListView.getChildCount(); i++) {
             PersonaView personaView = (PersonaView) mOtherProfilesListView.getChildAt(i);
-
-            if (personaView.getId() == profileId) {
-                Profile profile = mProfileManager.getProfileById(profileId);
-                Age age = profile.getAge();
-
-                personaView.setName(profile.getName());
-                personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
-                        age.getYear(), age.getMonth(), age.getDay()));
-                return;
-            }
+            if (personaView.getId() == id)
+                return personaView;
         }
 
+        Log.w(LOG_TAG, "Couldn't find any persona view with id: " + id);
+        return null;
+    }
+
+    private void synchronizeVisibleStatus() {
+        if (mPinnedProfilesListView.getChildCount() == 0) {
+            mPinnedProfilesScrollView.setVisibility(View.GONE);
+            mPinnedProfilesTextView.setVisibility(View.GONE);
+        } else {
+            mPinnedProfilesScrollView.setVisibility(View.VISIBLE);
+            mPinnedProfilesTextView.setVisibility(View.VISIBLE);
+        }
+
+        if (mOtherProfilesListView.getChildCount() == 0) {
+            mOtherProfilesScrollView.setVisibility(View.GONE);
+            mOtherProfilesTextView.setVisibility(View.GONE);
+        } else {
+            mOtherProfilesScrollView.setVisibility(View.VISIBLE);
+            mOtherProfilesTextView.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -173,30 +198,58 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
         mProfileManager.addProfile(profile);
 
-        PersonaView personaView = new PersonaView(this);
-        Age age = profile.getAge();
-
-        personaView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT));
-        personaView.setName(name);
-        personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
-                age.getYear(), age.getMonth(), age.getDay()));
-        personaView.setId(profile.getId());
+        PersonaView personaView = generateProfileView(profile);
         mOtherProfilesListView.addView(personaView);
+
+        synchronizeVisibleStatus();
     }
 
     @Override
     public void onProfileDateOfBirthChange(int profileId, Calendar newDateOfBirth, Calendar previousDateOfBirth) {
+        Age age = new Age(newDateOfBirth.get(Calendar.YEAR), newDateOfBirth.get(Calendar.MONTH), newDateOfBirth.get(Calendar.DAY_OF_MONTH));
+        PersonaView personaView = getPersonaViewById(profileId);
+        if (personaView == null) {
+            Log.w(LOG_TAG, "Couldn't find persona view for profile + " + profileId);
+            return;
+        }
 
+        personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
+                age.getYear(), age.getMonth(), age.getDay()));
     }
 
     @Override
     public void onProfileNameChange(int profileId, String newName, String previousName) {
+        PersonaView personaView = getPersonaViewById(profileId);
+        if (personaView == null) {
+            Log.w(LOG_TAG, "Couldn't find persona view for profile + " + profileId);
+            return;
+        }
 
+        personaView.setName(newName);
     }
 
     @Override
     public void onProfilePin(int profileId, boolean isPinned) {
+        PersonaView personaView = getPersonaViewById(profileId);
+        if (personaView == null) {
+            Log.w(LOG_TAG, "Couldn't find persona view for profile + " + profileId);
+            return;
+        }
 
+        ((LinearLayout)personaView.getParent()).removeView(personaView);
+        if (isPinned) {
+            mPinnedProfilesListView.addView(personaView);
+        } else {
+            mOtherProfilesListView.addView(personaView);
+        }
+
+    }
+
+    private ImageView getCustomAccessoryView(Drawable drawable) {
+        final ImageView imageView = new ImageView(this);
+        imageView.setImageDrawable(drawable);
+        imageView.setClickable(true);
+        imageView.setFocusable(true);
+        return imageView;
     }
 }

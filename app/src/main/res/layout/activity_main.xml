@@ -45,7 +45,7 @@
 
     <ScrollView
         android:id="@+id/sv_others"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
         android:orientation="vertical"
@@ -67,11 +67,15 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
+        android:backgroundTint="@android:color/background_light"
         android:clickable="true"
         android:focusable="true"
         android:onClick="showAddProfileDialog"
+        android:tint="@color/colorAccent"
+        app:borderWidth="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:rippleColor="#1f000000"
         app:srcCompat="@drawable/ic_action_add" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
