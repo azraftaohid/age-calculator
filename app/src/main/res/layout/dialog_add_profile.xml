@@ -34,6 +34,7 @@
         android:longClickable="true"
         android:nextFocusDown="@id/et_dob_new_profile"
         android:singleLine="true"
+        android:textAppearance="@style/TextAppearance.UIFabric.Body1"
         android:visibility="visible" />
 
     <TextView
@@ -60,7 +61,7 @@
         android:imeOptions="actionGo"
         android:importantForAutofill="no"
         android:inputType="date"
-        android:textAppearance="@style/TextAppearance.UIFabric"
+        android:textAppearance="@style/TextAppearance.UIFabric.Body1"
         tools:layout_conversion_absoluteHeight="45dp"
         tools:layout_conversion_absoluteWidth="411dp"
         tools:layout_editor_absoluteX="0dp"

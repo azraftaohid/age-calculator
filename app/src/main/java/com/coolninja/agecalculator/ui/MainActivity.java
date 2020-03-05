@@ -20,9 +20,15 @@ import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManager;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManagerInterface;
 import com.microsoft.officeuifabric.persona.PersonaView;
+import com.microsoft.officeuifabric.popupmenu.PopupMenu;
+import com.microsoft.officeuifabric.popupmenu.PopupMenuItem;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements ProfileManagerInterface
         .onProfileUpdateListener, ProfileManagerInterface.onProfilePinListener, AddProfileDialog.OnNewProfileAddedListener {
@@ -132,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     }
 
     private PersonaView generateProfileView(Profile profile) {
-        PersonaView personaView = new PersonaView(this);
+        final PersonaView personaView = new PersonaView(this);
         Age age = profile.getAge();
 
         personaView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
@@ -144,7 +150,47 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         personaView.setLongClickable(true);
         personaView.setId(profile.getId());
 
+        Objects.requireNonNull(personaView.getCustomAccessoryView()).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showMoreOptions(personaView);
+            }
+        });
+
+        personaView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                showMoreOptions(personaView);
+                return true;
+            }
+        });
+
         return personaView;
+    }
+
+    private void showMoreOptions(final PersonaView personaView) {
+        assert personaView.getCustomAccessoryView() != null : "PersonaView with ID " + personaView.getId() + " must have a custom accessory view";
+
+        ArrayList<PopupMenuItem> popupMenuItems = new ArrayList<>();
+
+        if (mProfileManager.isProfilePinned(personaView.getId())) popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_unpin, getString(R.string.unpin)));
+        else popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_pin, getString(R.string.pin)));
+        popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_rename, getString(R.string.rename)));
+        popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_change_dob, getString(R.string.change_date_of_birth)));
+
+        final PopupMenu popupMenu = new PopupMenu(this, personaView.getCustomAccessoryView(), popupMenuItems, PopupMenu.ItemCheckableBehavior.NONE);
+        popupMenu.setOnItemClickListener(new PopupMenuItem.OnClickListener() {
+            @Override
+            public void onPopupMenuItemClicked(@NotNull PopupMenuItem popupMenuItem) {
+                if (popupMenuItem.getId() == R.id.popup_menu_pin) {
+                    mProfileManager.pinProfile(personaView.getId(), true);
+                } else if (popupMenuItem.getId() == R.id.popup_menu_unpin) {
+                    mProfileManager.pinProfile(personaView.getId(), false);
+                }
+            }
+        });
+
+        popupMenu.show();
     }
 
     private PersonaView getPersonaViewById(int id) {
@@ -243,6 +289,8 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
             mOtherProfilesListView.addView(personaView);
         }
 
+        synchronizeVisibleStatus();
+
     }
 
     private ImageView getCustomAccessoryView(Drawable drawable) {
@@ -250,6 +298,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         imageView.setImageDrawable(drawable);
         imageView.setClickable(true);
         imageView.setFocusable(true);
+        imageView.setLongClickable(true);
         return imageView;
     }
 }
