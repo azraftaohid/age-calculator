@@ -1,171 +1,111 @@
 package com.coolninja.agecalculator.utilities.profilemanagement;
 
-import android.app.DatePickerDialog;
-import android.widget.DatePicker;
+import android.util.Log;
 
-import com.coolninja.agecalculator.utilities.BirthdayPickerDialog;
+import com.coolninja.agecalculator.ui.MainActivity;
+import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.Age;
-import com.coolninja.agecalculator.utilities.Month;
 
-import java.util.Calendar;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Profile {
+    private static final String LOG_TAG = Profile.class.getSimpleName();
+
+    static final String ID = "profile.id";
+    static final String NAME = "profile.name";
+    static final String BIRTH_YEAR = "profile.dob.year";
+    static final String BIRTH_MONTH = "profile.dob.month";
+    static final String BIRTH_DAY = "profile.dob.day";
     static final int DEFAULT_ERROR_CODE = -1;
-    private int mId = DEFAULT_ERROR_CODE;
+
+    private int mId = DEFAULT_ERROR_CODE; //Precaution step; in case constructor did not set id
+    private Birthday mDateOfBirth;
+
     private String mName;
-    private Calendar mDateOfBirth;
-    private int mAgeInYear;
-    private int mAgeInYearMonth;
-    private int mAgeInMonthDays;
-    private int mAgeInYearDays;
+    private ProfileManagerInterface.onProfileUpdatedListener mOnProfileUpdateListener;
 
-    private BirthdayPickerDialog mBirthdayPicker;
-    private ProfileManagerInterface.onProfileUpdateListener mProfileUpdateListener;
+    public Profile(String name, Birthday birthday, ProfileManagerInterface.onProfileUpdatedListener onProfileUpdatedListener) {
+        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Creating a new profile");
 
-    public Profile() {
+        mOnProfileUpdateListener = onProfileUpdatedListener;
         mId = ProfileManager.generateProfileId();
-        Calendar current = Calendar.getInstance();
-        mBirthdayPicker = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                mDateOfBirth.set(Calendar.YEAR, year);
-                mDateOfBirth.set(Calendar.MONTH, month);
-                mDateOfBirth.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            }
-        }, current.get(Calendar.YEAR), current.get(Calendar.MONTH), current.get(Calendar.DAY_OF_MONTH));
+        mName = name;
+        mDateOfBirth = birthday;
     }
 
-    public Profile(String name, Calendar dateOfBirth, ProfileManagerInterface.onProfileUpdateListener onProfileUpdateListener) {
-        mProfileUpdateListener = onProfileUpdateListener;
-        mId = ProfileManager.generateProfileId();
-        setName(name);
-        setDateOfBirth(dateOfBirth);
+    Profile(String name, Birthday dateOfBirth, int id, ProfileManagerInterface.onProfileUpdatedListener onProfileUpdatedListener) {
+        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Creating a new profile");
 
-        mBirthdayPicker = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                Calendar newDateOfBirth = Calendar.getInstance();
-                newDateOfBirth.set(Calendar.YEAR, year);
-                newDateOfBirth.set(Calendar.MONTH, month);
-                newDateOfBirth.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-
-                setDateOfBirth(newDateOfBirth);
-            }
-        }, dateOfBirth.get(Calendar.YEAR), dateOfBirth.get(Calendar.MONTH), dateOfBirth.get(Calendar.DAY_OF_MONTH));
+        mOnProfileUpdateListener = onProfileUpdatedListener;
+        mId = id;
+        mName = name;
+        mDateOfBirth = dateOfBirth;
     }
 
     public void setName(String newName) {
+        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Setting a new name for profile w/ ID " + mId);
+
         String previousName = mName;
         mName = newName;
 
-        if (mProfileUpdateListener != null)
-            mProfileUpdateListener.onProfileNameChange(mId, newName, previousName);
+        if (mOnProfileUpdateListener != null)
+            mOnProfileUpdateListener.onProfileNameChanged(mId, newName, previousName);
     }
 
-    public void setDateOfBirth(Calendar newDateOfBirth) {
-        Calendar previousDob = getDateOfBirth();
-        mDateOfBirth = newDateOfBirth;
+    public void setDateOfBirth(int year, int month, int day) {
+        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Setting a new date of birth for profile w/ ID " + mId);
 
-        if (mProfileUpdateListener != null)
-            mProfileUpdateListener.onProfileDateOfBirthChange(mId, newDateOfBirth, previousDob);
+        Birthday prevDateOfBirth = mDateOfBirth;
+        mDateOfBirth.set(Birthday.YEAR, year);
+        mDateOfBirth.set(Birthday.MONTH, month);
+        mDateOfBirth.set(Birthday.DAY, day);
+
+        mOnProfileUpdateListener.onProfileDateOfBirthChanged(mId, year, month, day, prevDateOfBirth);
     }
 
-    private void calculateAge() {
-        Calendar c = Calendar.getInstance();
-        long toDaysDivisor = 1000 * 60 * 60 * 24; //millis to seconds to minutes to days
-        long toYearsDivisor = toDaysDivisor * 365; //365 is important and can not be 366
-
-        long ageInMillis = c.getTimeInMillis() - mDateOfBirth.getTimeInMillis();
-        mAgeInYearDays = Long.valueOf((ageInMillis / toDaysDivisor) % 365).intValue() - getNumberOfLeapDays(mDateOfBirth, c);
-        mAgeInMonthDays = getDurationInDays(Month.values()[mDateOfBirth.get(Calendar.MONTH)],
-                mDateOfBirth.get(Calendar.DAY_OF_MONTH), c.get(Calendar.DAY_OF_MONTH));
-        mAgeInYearMonth = getDurationInMonths(mDateOfBirth.get(Calendar.MONTH), c.get(Calendar.MONTH),
-                mDateOfBirth.get(Calendar.DAY_OF_MONTH) > c.get(Calendar.DAY_OF_MONTH));
-        mAgeInYear = Double.valueOf(Math.floor((float) ageInMillis / toYearsDivisor)).intValue();
-
-        if (mAgeInYearDays < 0) {
-            mAgeInYear--;
-            mAgeInYearDays += 365;
-        }
-    }
-
-    private boolean isLeapYear(int year) {
-        return (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0));
-    }
-
-    private int getDurationInMonths(int startMonth, int endMonth, boolean isStartDateGreaterThanEndDate) {
-        if (endMonth > startMonth) {
-            if (isStartDateGreaterThanEndDate)
-                return endMonth - (startMonth + 1);
-            return endMonth - startMonth;
-        } else if (endMonth < startMonth) {
-            return 12 - (startMonth - endMonth);
-        } else if (isStartDateGreaterThanEndDate) { //and startMonth == endMonth
-            return 11; //If you were born after a date in the same month, you're 11 months and a few days old on that day
-        } else { //startMonth == endMonth and you were born before or on that day of the month
-            return 0;
-        }
-    }
-
-    private int getDurationInDays(Month startMonth, int startDay, int endDay) {
-        if (endDay > startDay) {
-            return endDay - startDay;
-        } else {
-            int days = (startMonth.getNumberOfDays() - startDay) + endDay;
-            return days == startMonth.getNumberOfDays()? 0 : days;
-        }
-    }
-
-    private int getNumberOfLeapDays(Calendar startDate, Calendar endDate) {
-        int leapDays = 0;
-        boolean isLeapYear = isLeapYear(startDate.get(Calendar.YEAR));
-
-        if (isLeapYear && startDate.get(Calendar.MONTH) <= Calendar.FEBRUARY) {
-            leapDays++;
-        }
-
-        if (isLeapYear && (endDate.get(Calendar.MONTH) >= Calendar.FEBRUARY
-                || (endDate.get(Calendar.MONTH) == Calendar.FEBRUARY && endDate.get(Calendar.DAY_OF_MONTH) == 29))) {
-            leapDays++;
-        }
-
-        for (int i = startDate.get(Calendar.YEAR) + 1; i < endDate.get(Calendar.YEAR); i++) {
-            if (isLeapYear(i)) {
-                leapDays++;
-            }
-        }
-
-        return leapDays;
-    }
-
-    public Age getAge() {
-        calculateAge();
-
-        return new Age(mAgeInYear, mAgeInYearMonth, mAgeInMonthDays);
+    void setId(int id) {
+        mId = id;
     }
 
     public String getName() {
         return mName;
     }
 
-    public void setBirthdayPicker(BirthdayPickerDialog birthdayPicker) {
-        mBirthdayPicker = birthdayPicker;
-    }
-
-    public BirthdayPickerDialog getBirthdayPicker() {
-        return mBirthdayPicker;
+    public Birthday getDateOfBirth() {
+        return mDateOfBirth;
     }
 
     public int getId() {
         return mId;
     }
 
-    public Calendar getDateOfBirth() {
-        return mDateOfBirth;
+    public Age getAge() {
+        return new Age(mDateOfBirth);
     }
 
-    void setId(int id) {
-        mId = id;
+    JSONObject toJSONObject() {
+        JSONObject object = new JSONObject();
+        try {
+            object.put(ID, mId);
+        } catch (JSONException e) {
+            Log.wtf(LOG_TAG, "Couldn't put ID in the json object for profile w/ ID: " + mId);
+            e.printStackTrace();
+        } try {
+            object.put(NAME, mName);
+        } catch (JSONException e) {
+            Log.wtf(LOG_TAG, "Couldn't put Name in the json object for profile w/ ID: " + mId);
+            e.printStackTrace();
+        } try {
+            object.put(BIRTH_YEAR, mDateOfBirth.get(Birthday.YEAR));
+            object.put(BIRTH_MONTH, mDateOfBirth.get(Birthday.MONTH));
+            object.put(BIRTH_DAY, mDateOfBirth.get(Birthday.DAY));
+        } catch (JSONException e) {
+            Log.wtf(LOG_TAG, "Couldn't put date of birth in the json object for profile w/ ID: " + mId);
+            e.printStackTrace();
+        }
+
+        return object;
     }
 
 }

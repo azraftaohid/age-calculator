@@ -25,7 +25,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 public class AddProfileDialog extends DialogFragment {
-    private OnNewProfileAddedListener mOnNewProfileAdded;
+    private OnProfileSubmissionListener mOnNewProfileAdded;
 
     private EditText mDobEditText;
     private EditText mNameEditText;
@@ -34,8 +34,8 @@ public class AddProfileDialog extends DialogFragment {
 
     private BirthdayPickerDialog mBirthdayPicker;
 
-    public interface OnNewProfileAddedListener {
-        void onSubmit(String name, Calendar dateOfBirth);
+    public interface OnProfileSubmissionListener {
+        void onSubmit(String name, Birthday dateOfBirth);
     }
 
     public AddProfileDialog() {
@@ -66,11 +66,11 @@ public class AddProfileDialog extends DialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
-        View mRoot = inflater.inflate(R.layout.dialog_add_profile, null);
+        View root = inflater.inflate(R.layout.dialog_add_profile, null);
 
-        mDobEditText = mRoot.findViewById(R.id.et_dob_new_profile);
-        mNameEditText = mRoot.findViewById(R.id.et_name_new_profile);
-        final TextView errorMessageTextView = mRoot.findViewById(R.id.tv_error_choosing_name);
+        mDobEditText = root.findViewById(R.id.et_dob_new_profile);
+        mNameEditText = root.findViewById(R.id.et_name_new_profile);
+        final TextView errorMessageTextView = root.findViewById(R.id.tv_invalid_name_input);
 
         if (mEnteredName != null) mNameEditText.setText(mEnteredName);
         if (mEnteredDateOfBirth != null) mDobEditText.setText(mEnteredDateOfBirth);
@@ -110,7 +110,7 @@ public class AddProfileDialog extends DialogFragment {
             }
         });
 
-        builder.setView(mRoot)
+        builder.setView(root)
                 .setPositiveButton(R.string.add_profile, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -122,9 +122,8 @@ public class AddProfileDialog extends DialogFragment {
                         int day = Integer.parseInt(mmddyyyy[1]);
                         int year = Integer.parseInt(mmddyyyy[2]);
 
-                        Calendar c = Calendar.getInstance();
-                        c.set(year, month, day);
-                        mOnNewProfileAdded.onSubmit(mEnteredName, c);
+                        Birthday birthday = new Birthday(year, month, day);
+                        mOnNewProfileAdded.onSubmit(mEnteredName, birthday);
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -151,7 +150,7 @@ public class AddProfileDialog extends DialogFragment {
         super.onAttach(context);
 
         try {
-            mOnNewProfileAdded = (OnNewProfileAddedListener) context;
+            mOnNewProfileAdded = (OnProfileSubmissionListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + ": must implement OnNewProfileAddedListener");
         }

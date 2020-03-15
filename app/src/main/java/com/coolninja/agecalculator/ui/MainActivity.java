@@ -10,12 +10,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TextView;
 
 import com.coolninja.agecalculator.utilities.AddProfileDialog;
 import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Age;
+import com.coolninja.agecalculator.utilities.Birthday;
+import com.coolninja.agecalculator.utilities.ChangeDateOfBirthDialog;
+import com.coolninja.agecalculator.utilities.RenameDialog;
 import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManager;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManagerInterface;
@@ -26,31 +27,34 @@ import com.microsoft.officeuifabric.popupmenu.PopupMenuItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Locale;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements ProfileManagerInterface
-        .onProfileUpdateListener, ProfileManagerInterface.onProfilePinListener, AddProfileDialog.OnNewProfileAddedListener {
+public class MainActivity extends AppCompatActivity implements ProfileManagerInterface.onProfileUpdatedListener,
+        ProfileManagerInterface.onProfilePinnedListener, ProfileManagerInterface.onProfileAddedListener,
+        AddProfileDialog.OnProfileSubmissionListener {
     public static final String EXTRA_NAME = "com.coolninja.agecalculator.extra.NAME";
     public static final String EXTRA_YEAR = "com.coolninja.agecalculator.extra.YEAR";
     public static final String EXTRA_MONTH = "com.coolninja.agecalculator.extra.MONTH";
     public static final String EXTRA_DAY = "com.coolninja.agecalculator.extra.DAY";
+    public static final int LOG_LEVEL = Log.DEBUG;
+    public static final boolean LOG_V = LOG_LEVEL <= Log.VERBOSE;
+    public static final boolean LOG_D = LOG_LEVEL <= Log.DEBUG;
+    public static final boolean LOG_I = LOG_LEVEL <= Log.INFO;
+    public static final boolean LOG_W = LOG_LEVEL <= Log.WARN;
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
 
     private LinearLayout mPinnedProfilesListView;
     private LinearLayout mOtherProfilesListView;
-    private TextView mPinnedProfilesTextView;
-    private TextView mOtherProfilesTextView;
-    private ScrollView mPinnedProfilesScrollView;
-    private ScrollView mOtherProfilesScrollView;
+    private LinearLayout mPinnedListView;
+    private LinearLayout mOthersListView;
 
     private ProfileManager mProfileManager;
 
     private int mDefaultErrorCode;
+    private long mStartTime;
     static final int DEFAULT_DOB_REQUEST = 1111;
 
-    //TODO implement a way to show popup when clicked on accessory view
     //TODO Add ability to choose between different age viewing formats
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,12 +62,11 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         setContentView(R.layout.activity_main);
 
         mDefaultErrorCode = Integer.parseInt(getString(R.string.default_error_value));
+        mPinnedListView = findViewById(R.id.ll_pinned);
+        mOthersListView = findViewById(R.id.ll_others);
         mPinnedProfilesListView = findViewById(R.id.ll_pinned_profiles);
         mOtherProfilesListView = findViewById(R.id.ll_other_profiles);
-        mPinnedProfilesTextView = findViewById(R.id.tv_pinned_profiles);
-        mOtherProfilesTextView = findViewById(R.id.tv_other_profiles);
-        mPinnedProfilesScrollView = findViewById(R.id.sv_pinned);
-        mOtherProfilesScrollView = findViewById(R.id.sv_others);
+        mStartTime = System.currentTimeMillis();
 
         mProfileManager = ProfileManager.getProfileManager(this);
 
@@ -74,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         if (mProfileManager.getProfiles().size() != 0) {
             reRegisterProfileViews();
         }
+
+//        generateProfiles(50);
 
     }
 
@@ -89,30 +94,24 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         if (requestCode == DEFAULT_DOB_REQUEST && resultCode == RESULT_OK) {
             if (data != null) {
                 String name = data.getStringExtra(EXTRA_NAME);
-
-                Calendar dob = Calendar.getInstance();
-                dob.set(data.getIntExtra(EXTRA_YEAR, mDefaultErrorCode),
+                Birthday dob = new Birthday(data.getIntExtra(EXTRA_YEAR, mDefaultErrorCode),
                         data.getIntExtra(EXTRA_MONTH, mDefaultErrorCode),
                         data.getIntExtra(EXTRA_DAY, mDefaultErrorCode));
 
-                Profile profile = new Profile(name, dob, new ProfileManagerInterface.onProfileUpdateListener() {
+                Profile profile = new Profile(name, dob, new ProfileManagerInterface.onProfileUpdatedListener() {
                     @Override
-                    public void onProfileDateOfBirthChange(int profileId, Calendar newDateOfBirth, Calendar previousDateOfBirth) {
-                        mProfileManager.onProfileDateOfBirthChange(profileId, newDateOfBirth, previousDateOfBirth);
+                    public void onProfileDateOfBirthChanged(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+                        mProfileManager.onProfileDateOfBirthChanged(profileId, newBirthYear, newBirthMonth, newBirthDay, previousBirthDay);
                     }
 
                     @Override
-                    public void onProfileNameChange(int profileId, String newName, String previousName) {
-                        mProfileManager.onProfileNameChange(profileId, newName, previousName);
+                    public void onProfileNameChanged(int profileId, String newName, String previousName) {
+                        mProfileManager.onProfileNameChanged(profileId, newName, previousName);
                     }
                 });
 
                 mProfileManager.addProfile(profile);
-                PersonaView personaView = generateProfileView(profile);
-                mOtherProfilesListView.addView(personaView);
                 mProfileManager.pinProfile(profile.getId(), true);
-
-                synchronizeVisibleStatus();
             }
         }
     }
@@ -128,13 +127,16 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         for (Profile profile : mProfileManager.getProfiles()) {
             PersonaView personaView = generateProfileView(profile);
 
-            if (mProfileManager.isProfilePinned(profile.getId()))
+            if (ProfileManager.isPinned(profile.getId()))
                 mPinnedProfilesListView.addView(personaView);
             else
                 mOtherProfilesListView.addView(personaView);
         }
 
         synchronizeVisibleStatus();
+
+        long requiredTime = System.currentTimeMillis() - mStartTime;
+        if (LOG_D) Log.d(LOG_TAG, "It took " + requiredTime + " milliseconds to complete");
     }
 
     private PersonaView generateProfileView(Profile profile) {
@@ -145,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
                 LinearLayout.LayoutParams.WRAP_CONTENT));
         personaView.setName(profile.getName());
         personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
-                age.getYear(), age.getMonth(), age.getDay()));
+                age.getYears(), age.getMonths(), age.getDays()));
         personaView.setCustomAccessoryView(getCustomAccessoryView(getDrawable(R.drawable.ic_more_vertical)));
         personaView.setLongClickable(true);
         personaView.setId(profile.getId());
@@ -172,20 +174,43 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         assert personaView.getCustomAccessoryView() != null : "PersonaView with ID " + personaView.getId() + " must have a custom accessory view";
 
         ArrayList<PopupMenuItem> popupMenuItems = new ArrayList<>();
+        final int id = personaView.getId();
 
-        if (mProfileManager.isProfilePinned(personaView.getId())) popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_unpin, getString(R.string.unpin)));
+        if (ProfileManager.isPinned(id)) popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_unpin, getString(R.string.unpin)));
         else popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_pin, getString(R.string.pin)));
         popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_rename, getString(R.string.rename)));
         popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_change_dob, getString(R.string.change_date_of_birth)));
+
+        final Profile profile = mProfileManager.getProfileById(personaView.getId());
+
+        final ProfileManagerInterface.onProfileUpdatedListener onProfileUpdatedListener = new ProfileManagerInterface.onProfileUpdatedListener() {
+            @Override
+            public void onProfileDateOfBirthChanged(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+                profile.setDateOfBirth(newBirthYear, newBirthMonth, newBirthDay);
+            }
+
+            @Override
+            public void onProfileNameChanged(int profileId, String newName, String previousName) {
+                profile.setName(newName);
+            }
+        };
 
         final PopupMenu popupMenu = new PopupMenu(this, personaView.getCustomAccessoryView(), popupMenuItems, PopupMenu.ItemCheckableBehavior.NONE);
         popupMenu.setOnItemClickListener(new PopupMenuItem.OnClickListener() {
             @Override
             public void onPopupMenuItemClicked(@NotNull PopupMenuItem popupMenuItem) {
                 if (popupMenuItem.getId() == R.id.popup_menu_pin) {
-                    mProfileManager.pinProfile(personaView.getId(), true);
+                    mProfileManager.pinProfile(id, true);
                 } else if (popupMenuItem.getId() == R.id.popup_menu_unpin) {
-                    mProfileManager.pinProfile(personaView.getId(), false);
+                    mProfileManager.pinProfile(id, false);
+                } else if (popupMenuItem.getId() == R.id.popup_menu_rename) {
+                    RenameDialog renameDialog = RenameDialog.newInstance(onProfileUpdatedListener);
+                    renameDialog.show(getSupportFragmentManager(), getString(R.string.rename_dialog_tag));
+                } else if ((popupMenuItem.getId() == R.id.popup_menu_change_dob)) {
+                    Birthday bDay = mProfileManager.getProfileById(personaView.getId()).getDateOfBirth();
+                    ChangeDateOfBirthDialog changeDateOfBirthDialog = ChangeDateOfBirthDialog.newInstance(onProfileUpdatedListener,
+                            bDay.get(Birthday.YEAR), bDay.get(Birthday.MONTH), bDay.get(Birthday.DAY));
+                    changeDateOfBirthDialog.show(getSupportFragmentManager(), getString(R.string.change_dob_dialog_tag));
                 }
             }
         });
@@ -194,65 +219,70 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     }
 
     private PersonaView getPersonaViewById(int id) {
-        for (int i = 0; i < mPinnedProfilesListView.getChildCount(); i++) {
-            PersonaView personaView = (PersonaView) mPinnedProfilesListView.getChildAt(i);
-            if (personaView.getId() == id)
-                return personaView;
-        }
+        View view = findViewInLayout(mPinnedProfilesListView, id);
+        if (view == null) view = findViewInLayout(mOtherProfilesListView, id);
 
-        for (int i = 0; i < mOtherProfilesListView.getChildCount(); i++) {
-            PersonaView personaView = (PersonaView) mOtherProfilesListView.getChildAt(i);
-            if (personaView.getId() == id)
-                return personaView;
+        if (view instanceof PersonaView) {
+            return (PersonaView) view;
         }
 
         Log.w(LOG_TAG, "Couldn't find any persona view with id: " + id);
+        Log.i(LOG_TAG, "Current max id is " + ProfileManager.getMaxedId());
         return null;
     }
 
-    private void synchronizeVisibleStatus() {
-        if (mPinnedProfilesListView.getChildCount() == 0) {
-            mPinnedProfilesScrollView.setVisibility(View.GONE);
-            mPinnedProfilesTextView.setVisibility(View.GONE);
-        } else {
-            mPinnedProfilesScrollView.setVisibility(View.VISIBLE);
-            mPinnedProfilesTextView.setVisibility(View.VISIBLE);
+    private View findViewInLayout(LinearLayout linearLayout, int viewId) {
+        for (int i = 0; i < linearLayout.getChildCount(); i++) {
+            View view = linearLayout.getChildAt(i);
+
+            if (view.getId() == viewId) {
+                return view;
+            }
         }
 
-        if (mOtherProfilesListView.getChildCount() == 0) {
-            mOtherProfilesScrollView.setVisibility(View.GONE);
-            mOtherProfilesTextView.setVisibility(View.GONE);
-        } else {
-            mOtherProfilesScrollView.setVisibility(View.VISIBLE);
-            mOtherProfilesTextView.setVisibility(View.VISIBLE);
+        return null;
+    }
+
+    private void generateProfiles(int howMany) {
+        if (LOG_V) Log.v(LOG_TAG, "Generating " + howMany + " dummy profiles");
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 0; i < howMany; i++) {
+            onSubmit(("Dummy " + (i + 100)), new Birthday(1920, 5, 24));
         }
+
+        long requiredTime = System.currentTimeMillis() - startTime;
+        if (LOG_D) Log.d(LOG_TAG, "It took " + requiredTime + " milliseconds to generate them");
+    }
+
+    private void synchronizeVisibleStatus() {
+        if (mPinnedProfilesListView.getChildCount() == 0) mPinnedListView.setVisibility(View.GONE);
+        else mPinnedListView.setVisibility(View.VISIBLE);
+
+        if (mOtherProfilesListView.getChildCount() == 0) mOthersListView.setVisibility(View.GONE);
+        else mOthersListView.setVisibility(View.VISIBLE);
     }
 
     @Override
-    public void onSubmit(String name, Calendar dateOfBirth) {
-        Profile profile = new Profile(name, dateOfBirth, new ProfileManagerInterface.onProfileUpdateListener() {
+    public void onSubmit(String name, Birthday dateOfBirth) {
+        Profile profile = new Profile(name, dateOfBirth, new ProfileManagerInterface.onProfileUpdatedListener() {
             @Override
-            public void onProfileDateOfBirthChange(int profileId, Calendar newDateOfBirth, Calendar previousDateOfBirth) {
-                mProfileManager.onProfileDateOfBirthChange(profileId, newDateOfBirth, previousDateOfBirth);
+            public void onProfileDateOfBirthChanged(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+                mProfileManager.onProfileDateOfBirthChanged(profileId, newBirthYear, newBirthMonth, newBirthDay, previousBirthDay);
             }
 
             @Override
-            public void onProfileNameChange(int profileId, String newName, String previousName) {
-                mProfileManager.onProfileNameChange(profileId, newName, previousName);
+            public void onProfileNameChanged(int profileId, String newName, String previousName) {
+                mProfileManager.onProfileNameChanged(profileId, newName, previousName);
             }
         });
 
         mProfileManager.addProfile(profile);
-
-        PersonaView personaView = generateProfileView(profile);
-        mOtherProfilesListView.addView(personaView);
-
-        synchronizeVisibleStatus();
     }
 
     @Override
-    public void onProfileDateOfBirthChange(int profileId, Calendar newDateOfBirth, Calendar previousDateOfBirth) {
-        Age age = new Age(newDateOfBirth.get(Calendar.YEAR), newDateOfBirth.get(Calendar.MONTH), newDateOfBirth.get(Calendar.DAY_OF_MONTH));
+    public void onProfileDateOfBirthChanged(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+        Age age = new Age(newBirthYear, newBirthMonth, newBirthDay);
         PersonaView personaView = getPersonaViewById(profileId);
         if (personaView == null) {
             Log.w(LOG_TAG, "Couldn't find persona view for profile + " + profileId);
@@ -260,11 +290,11 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         }
 
         personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
-                age.getYear(), age.getMonth(), age.getDay()));
+                age.getYears(), age.getMonths(), age.getDays()));
     }
 
     @Override
-    public void onProfileNameChange(int profileId, String newName, String previousName) {
+    public void onProfileNameChanged(int profileId, String newName, String previousName) {
         PersonaView personaView = getPersonaViewById(profileId);
         if (personaView == null) {
             Log.w(LOG_TAG, "Couldn't find persona view for profile + " + profileId);
@@ -275,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     }
 
     @Override
-    public void onProfilePin(int profileId, boolean isPinned) {
+    public void onProfilePinned(int profileId, boolean isPinned) {
         PersonaView personaView = getPersonaViewById(profileId);
         if (personaView == null) {
             Log.w(LOG_TAG, "Couldn't find persona view for profile + " + profileId);
@@ -284,13 +314,12 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
         ((LinearLayout)personaView.getParent()).removeView(personaView);
         if (isPinned) {
-            mPinnedProfilesListView.addView(personaView);
+            mPinnedProfilesListView.addView(personaView, 0);
         } else {
-            mOtherProfilesListView.addView(personaView);
+            mOtherProfilesListView.addView(personaView, 0);
         }
 
         synchronizeVisibleStatus();
-
     }
 
     private ImageView getCustomAccessoryView(Drawable drawable) {
@@ -301,4 +330,14 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         imageView.setLongClickable(true);
         return imageView;
     }
+
+    @Override
+    public void onProfileAdded(Profile profile) {
+        PersonaView personaView = generateProfileView(profile);
+        if (ProfileManager.isPinned(profile.getId())) mPinnedProfilesListView.addView(personaView);
+        else mOtherProfilesListView.addView(personaView);
+
+        synchronizeVisibleStatus();
+    }
+
 }
