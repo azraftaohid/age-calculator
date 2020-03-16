@@ -42,5 +42,5 @@
     <string name="ok">OK</string>
     <string name="rename_dialog_tag">com.coolninja.agecalculator.tag.rename</string>
     <string name="change_dob_dialog_tag">com.coolninja.agecalculator.tag.change_dob</string>
-    <string name="delete">Delete</string>
+    <string name="delete">Remove</string>
 </resources>

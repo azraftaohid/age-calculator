@@ -32,13 +32,13 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements ProfileManagerInterface.onProfileUpdatedListener,
         ProfileManagerInterface.onProfilePinnedListener, ProfileManagerInterface.onProfileAddedListener,
-        AddProfileDialog.OnProfileSubmissionListener {
+        AddProfileDialog.OnProfileSubmissionListener, ProfileManagerInterface.onProfileRemovedListener {
     public static final String EXTRA_NAME = "com.coolninja.agecalculator.extra.NAME";
     public static final String EXTRA_YEAR = "com.coolninja.agecalculator.extra.YEAR";
     public static final String EXTRA_MONTH = "com.coolninja.agecalculator.extra.MONTH";
     public static final String EXTRA_DAY = "com.coolninja.agecalculator.extra.DAY";
-    public static final int LOG_LEVEL = Log.DEBUG;
-    public static final boolean LOG_V = LOG_LEVEL <= Log.VERBOSE;
+    public static final int LOG_LEVEL = Log.VERBOSE;
+    public static final boolean LOG_V = LOG_LEVEL <= Log.DEBUG;
     public static final boolean LOG_D = LOG_LEVEL <= Log.DEBUG;
     public static final boolean LOG_I = LOG_LEVEL <= Log.INFO;
     public static final boolean LOG_W = LOG_LEVEL <= Log.WARN;
@@ -74,11 +74,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
             launchWelcomeActivity();
         }
 
-        if (mProfileManager.getProfiles().size() != 0) {
-            reRegisterProfileViews();
-        }
-
-//        generateProfiles(50);
+//        generateDummyProfiles(50);
 
     }
 
@@ -180,6 +176,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         else popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_pin, getString(R.string.pin)));
         popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_rename, getString(R.string.rename)));
         popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_change_dob, getString(R.string.change_date_of_birth)));
+        popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_delete, getString(R.string.delete)));
 
         final Profile profile = mProfileManager.getProfileById(personaView.getId());
 
@@ -206,11 +203,13 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
                 } else if (popupMenuItem.getId() == R.id.popup_menu_rename) {
                     RenameDialog renameDialog = RenameDialog.newInstance(onProfileUpdatedListener);
                     renameDialog.show(getSupportFragmentManager(), getString(R.string.rename_dialog_tag));
-                } else if ((popupMenuItem.getId() == R.id.popup_menu_change_dob)) {
+                } else if (popupMenuItem.getId() == R.id.popup_menu_change_dob) {
                     Birthday bDay = mProfileManager.getProfileById(personaView.getId()).getDateOfBirth();
                     ChangeDateOfBirthDialog changeDateOfBirthDialog = ChangeDateOfBirthDialog.newInstance(onProfileUpdatedListener,
                             bDay.get(Birthday.YEAR), bDay.get(Birthday.MONTH), bDay.get(Birthday.DAY));
                     changeDateOfBirthDialog.show(getSupportFragmentManager(), getString(R.string.change_dob_dialog_tag));
+                } else if (popupMenuItem.getId() == R.id.popup_menu_delete) {
+                    mProfileManager.removeProfile(id);
                 }
             }
         });
@@ -243,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         return null;
     }
 
-    private void generateProfiles(int howMany) {
+    private void generateDummyProfiles(int howMany) {
         if (LOG_V) Log.v(LOG_TAG, "Generating " + howMany + " dummy profiles");
         long startTime = System.currentTimeMillis();
 
@@ -256,11 +255,21 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     }
 
     private void synchronizeVisibleStatus() {
+        boolean launchWelcomeActivity = true;
+
         if (mPinnedProfilesListView.getChildCount() == 0) mPinnedListView.setVisibility(View.GONE);
-        else mPinnedListView.setVisibility(View.VISIBLE);
+        else {
+            mPinnedListView.setVisibility(View.VISIBLE);
+            launchWelcomeActivity = false;
+        }
 
         if (mOtherProfilesListView.getChildCount() == 0) mOthersListView.setVisibility(View.GONE);
-        else mOthersListView.setVisibility(View.VISIBLE);
+        else {
+            mOthersListView.setVisibility(View.VISIBLE);
+            launchWelcomeActivity = false;
+        }
+
+        if (launchWelcomeActivity) launchWelcomeActivity();
     }
 
     @Override
@@ -340,4 +349,13 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         synchronizeVisibleStatus();
     }
 
+    @Override
+    public void onProfileRemoved(int profileId) {
+        PersonaView personaView = getPersonaViewById(profileId);
+        if (personaView != null) {
+            ((LinearLayout)personaView.getParent()).removeView(personaView);
+        }
+
+        synchronizeVisibleStatus();
+    }
 }

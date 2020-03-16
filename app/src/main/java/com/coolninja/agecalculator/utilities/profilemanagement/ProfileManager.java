@@ -214,6 +214,9 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     public void removeProfile(int profileId) {
         removeJsonProfile(profileId);
         Log.i(LOG_TAG, "Removed profile w/ ID: " + profileId + "(" + mProfiles.remove(getProfileById(profileId)) + ")");
+        mTagManager.removeAllTagsFromProfile(profileId);
+
+        updatePreference();
 
         if (mContext instanceof ProfileManagerInterface.onProfileRemovedListener) {
             ((ProfileManagerInterface.onProfileRemovedListener) mContext).onProfileRemoved(profileId);
@@ -238,6 +241,11 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
     private void bringProfileOnTop(int profileId) {
         Log.v(LOG_TAG, "Bringing profile w/ ID " + profileId + " on top");
+
+        Profile profile = getProfileById(profileId);
+        mProfiles.remove(profile);
+        mProfiles.add(0, profile);
+
         int numberOfProfiles = mJsonProfiles.length();
         JSONObject[] arrayProfiles = new JSONObject[numberOfProfiles];
 

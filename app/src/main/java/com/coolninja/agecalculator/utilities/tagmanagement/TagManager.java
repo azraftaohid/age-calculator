@@ -93,6 +93,13 @@ public class TagManager {
     public void removeTagFromProfile(int profileId, int whichTag) {
         if (MainActivity.LOG_V) Log.v(LOG_TAG, "Removing tag from profile w/ ID " + profileId);
 
+        try {
+            removeProfileFromJsonArray(profileId, mTaggedProfilesJson.getJSONObject(whichTag).getJSONArray(Tag.PROFILE_IDS_KEY));
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "Unable to remove profile w/ ID " + profileId + " into the tagged profiles json");
+            e.printStackTrace();
+        }
+
         if (whichTag == PIN) {
             Tag.PIN.removeProfile(profileId);
 
@@ -100,15 +107,12 @@ public class TagManager {
                 ((ProfileManagerInterface.onProfilePinnedListener) mContext).onProfilePinned(profileId, false);
             }
         }
+    }
 
-        try {
-            removeProfileFromJsonArray(profileId, mTaggedProfilesJson.getJSONObject(whichTag).getJSONArray(Tag.PROFILE_IDS_KEY));
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "Unable to put profile w/ ID " + profileId + " into the tagged profiles json");
-            e.printStackTrace();
+    public void removeAllTagsFromProfile(int profileId) {
+        for (Tag t : Tag.values()) {
+            removeTagFromProfile(profileId, t.ordinal());
         }
-
-        updatePreference();
     }
 
     private void removeProfileFromJsonArray(int profileId, JSONArray jsonArray) {
