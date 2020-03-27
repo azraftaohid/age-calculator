@@ -12,7 +12,6 @@ import android.widget.TextView;
 import com.coolninja.agecalculator.utilities.AddProfileDialog;
 import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Birthday;
-import com.coolninja.agecalculator.utilities.Month;
 
 public class WelcomeActivity extends AppCompatActivity implements AddProfileDialog.OnProfileSubmissionListener {
     private static final String LOG_TAG = WelcomeActivity.class.getSimpleName();
@@ -77,12 +76,8 @@ public class WelcomeActivity extends AppCompatActivity implements AddProfileDial
         mDoneButton.setVisibility(View.VISIBLE);
         mChoseNameTextView.setText(name);
         mChoseNameTextView.setVisibility(View.VISIBLE);
-        mChoseDateTextView.setText(String.format(getString(R.string.display_chose_date),
-                getMonth(dateOfBirth.get(Birthday.MONTH)).getShortName(), dateOfBirth.get(Birthday.DAY), dateOfBirth.get(Birthday.YEAR)));
+        mChoseDateTextView.setText(String.format(getString(R.string.long_date_format),
+                dateOfBirth.getMonth().getShortName(), dateOfBirth.get(Birthday.DAY), dateOfBirth.get(Birthday.YEAR)));
         mChoseDateTextView.setVisibility(View.VISIBLE);
-    }
-
-    private Month getMonth(int month) {
-        return Month.values()[month];
     }
 }

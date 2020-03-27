@@ -20,4 +20,8 @@ public class Birthday {
     public void set(int field, int value) {
         mDateOfBirth[field] = value;
     }
+
+    public Month getMonth() {
+        return Month.values()[get(MONTH)];
+    }
 }

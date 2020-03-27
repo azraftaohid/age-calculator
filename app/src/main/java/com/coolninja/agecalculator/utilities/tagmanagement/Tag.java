@@ -1,9 +1,12 @@
 package com.coolninja.agecalculator.utilities.tagmanagement;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 enum Tag {
@@ -48,12 +51,25 @@ enum Tag {
         return mSimpleName;
     }
 
-    JSONObject toJson() {
+    JSONObject toJsonObject() {
         JSONObject object = new JSONObject();
 
         try {
             object.put(TAG_NAME_KEY, this.ordinal());
             object.put(PROFILE_IDS_KEY, new JSONArray(mProfileIds.toArray()));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return object;
+    }
+
+    JSONObject initializerToJsonObject() {
+        JSONObject object = new JSONObject();
+
+        try {
+            object.put(TAG_NAME_KEY, this.ordinal());
+            object.put(PROFILE_IDS_KEY, new JSONArray());
         } catch (JSONException e) {
             e.printStackTrace();
         }

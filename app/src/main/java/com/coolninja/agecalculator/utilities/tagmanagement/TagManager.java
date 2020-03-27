@@ -36,7 +36,7 @@ public class TagManager {
         TagManager tagManager = new TagManager(context);
 
         for (Tag t : Tag.values()) {
-            tagManager.mTaggedProfilesJson.put(t.toJson());
+            tagManager.mTaggedProfilesJson.put(t.initializerToJsonObject());
         }
 
         SharedPreferences pref = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE);
@@ -71,11 +71,15 @@ public class TagManager {
     public void tagProfile(int profileId, int what) {
         if (MainActivity.LOG_V) Log.v(LOG_TAG, "Tagging profile w/ ID " + profileId);
 
-        if (what == PIN) {
+        Tag t = Tag.values()[what];
+        if (t.getProfileIds().contains(profileId)) {
+            removeTagFromProfile(profileId, what);
+        }
 
-            Tag.PIN.addProfile(profileId);
+        t.addProfile(profileId);
 
-            if (mContext instanceof ProfileManagerInterface.onProfilePinnedListener) {
+        if (mContext instanceof ProfileManagerInterface.onProfilePinnedListener) {
+            if (what == PIN) {
                 ((ProfileManagerInterface.onProfilePinnedListener) mContext).onProfilePinned(profileId, true);
             }
         }
@@ -100,10 +104,10 @@ public class TagManager {
             e.printStackTrace();
         }
 
-        if (whichTag == PIN) {
-            Tag.PIN.removeProfile(profileId);
+        Tag.values()[whichTag].removeProfile(profileId);
 
-            if (mContext instanceof ProfileManagerInterface.onProfilePinnedListener) {
+        if (mContext instanceof ProfileManagerInterface.onProfilePinnedListener) {
+            if (whichTag == PIN) {
                 ((ProfileManagerInterface.onProfilePinnedListener) mContext).onProfilePinned(profileId, false);
             }
         }

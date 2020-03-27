@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     public static final String EXTRA_YEAR = "com.coolninja.agecalculator.extra.YEAR";
     public static final String EXTRA_MONTH = "com.coolninja.agecalculator.extra.MONTH";
     public static final String EXTRA_DAY = "com.coolninja.agecalculator.extra.DAY";
+    public static final String EXTRA_PROFILE_ID = "com.coolninja.agecalculator.extra.PROFILE_ID";
     public static final int LOG_LEVEL = Log.VERBOSE;
     public static final boolean LOG_V = LOG_LEVEL <= Log.DEBUG;
     public static final boolean LOG_D = LOG_LEVEL <= Log.DEBUG;
@@ -55,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     private long mStartTime;
     static final int DEFAULT_DOB_REQUEST = 1111;
 
-    //TODO Add ability to choose between different age viewing formats
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,13 +74,23 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
             launchWelcomeActivity();
         }
 
-//        generateDummyProfiles(50);
+
+
+//        showNumberOfProfiles();
+
+//        generateDummyProfiles(100);
 
     }
 
     void launchWelcomeActivity() {
         Intent setUpIntent = new Intent(this, WelcomeActivity.class);
         startActivityForResult(setUpIntent, DEFAULT_DOB_REQUEST);
+    }
+
+    public void launchProfileDetailsActivity(View view) {
+        Intent showDetailsIntent = new Intent(this, ProfileDetailsActivity.class);
+        showDetailsIntent.putExtra(EXTRA_PROFILE_ID, view.getId());
+        startActivity(showDetailsIntent);
     }
 
     @Override
@@ -137,13 +147,13 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
     private PersonaView generateProfileView(Profile profile) {
         final PersonaView personaView = new PersonaView(this);
-        Age age = profile.getAge();
+        long[] age = profile.getAge().get(Age.MODE_YEAR_MONTH_DAY);
 
         personaView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT));
         personaView.setName(profile.getName());
-        personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
-                age.getYears(), age.getMonths(), age.getDays()));
+        personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_years_months_days),
+                age[Age.YEAR], age[Age.MONTH], age[Age.DAY]));
         personaView.setCustomAccessoryView(getCustomAccessoryView(getDrawable(R.drawable.ic_more_vertical)));
         personaView.setLongClickable(true);
         personaView.setId(profile.getId());
@@ -152,6 +162,13 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
             @Override
             public void onClick(View v) {
                 showMoreOptions(personaView);
+            }
+        });
+
+        personaView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                launchProfileDetailsActivity(personaView);
             }
         });
 
@@ -247,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         long startTime = System.currentTimeMillis();
 
         for (int i = 0; i < howMany; i++) {
-            onSubmit(("Dummy " + (i + 100)), new Birthday(1920, 5, 24));
+            onSubmit(("Dummy " + (i + 200)), new Birthday(1920, 5, 24));
         }
 
         long requiredTime = System.currentTimeMillis() - startTime;
@@ -291,15 +308,15 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
     @Override
     public void onProfileDateOfBirthChanged(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
-        Age age = new Age(newBirthYear, newBirthMonth, newBirthDay);
+        long[] age = new Age(newBirthYear, newBirthMonth, newBirthDay).get(Age.MODE_YEAR_MONTH_DAY);
         PersonaView personaView = getPersonaViewById(profileId);
         if (personaView == null) {
             Log.w(LOG_TAG, "Couldn't find persona view for profile + " + profileId);
             return;
         }
 
-        personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_age_years_months_days),
-                age.getYears(), age.getMonths(), age.getDays()));
+        personaView.setSubtitle(String.format(Locale.ENGLISH, getString(R.string.display_years_months_days),
+                age[Age.YEAR], age[Age.MONTH], age[Age.DAY]));
     }
 
     @Override

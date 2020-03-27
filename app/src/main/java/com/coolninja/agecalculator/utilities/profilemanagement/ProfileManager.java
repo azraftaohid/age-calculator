@@ -104,6 +104,10 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
                 profile.setId(nextProfileId);
             } while (ids.contains(nextProfileId++));
         }
+        if (getProfileIds().contains(profile.getId())) {
+            Log.w(LOG_TAG, "Couldn't add profile because another profile with the same ID already exists");
+            return;
+        }
 
         if (MainActivity.LOG_V) Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " to the profile manager");
         mProfiles.add(profile);
