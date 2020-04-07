@@ -51,4 +51,5 @@
     <string name="display_minutes">%d Minutes</string>
     <string name="display_seconds">%d Seconds</string>
     <string name="display_months_days">%d Months, %d Days</string>
+    <string name="empty_profiles">Ohh, such empty in here!</string>
 </resources>

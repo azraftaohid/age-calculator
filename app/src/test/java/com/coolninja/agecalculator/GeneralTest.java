@@ -1,5 +1,7 @@
 package com.coolninja.agecalculator;
 
+import android.util.Log;
+
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -7,6 +9,13 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class GeneralTest {
+    private static final String LOG_TAG = GeneralTest.class.getSimpleName();
+
+    @Test
+    public void random() {
+        assertThat(LOG_TAG, is(equalTo("com.coolninja.agecalculator.GeneralTest")));
+    }
+
     @Test
     public void unsignedIntegerTest() {
         int i = 2147483647;

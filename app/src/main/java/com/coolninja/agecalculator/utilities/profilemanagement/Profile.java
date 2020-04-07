@@ -5,6 +5,7 @@ import android.util.Log;
 import com.coolninja.agecalculator.ui.MainActivity;
 import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.Age;
+import com.coolninja.agecalculator.utilities.codes.Error;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,9 +18,8 @@ public class Profile {
     static final String BIRTH_YEAR = "profile.dob.year";
     static final String BIRTH_MONTH = "profile.dob.month";
     static final String BIRTH_DAY = "profile.dob.day";
-    static final int DEFAULT_ERROR_CODE = -1;
 
-    private int mId = DEFAULT_ERROR_CODE; //Precaution step; in case constructor did not set id
+    private int mId = Error.NOT_FOUND; //Precaution step; in case constructor did not set id
     private Birthday mDateOfBirth;
 
     private String mName;

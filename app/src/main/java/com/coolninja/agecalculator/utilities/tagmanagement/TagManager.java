@@ -15,6 +15,8 @@ import java.util.ArrayList;
 
 public class TagManager {
     private static final String LOG_TAG = TagManager.class.getSimpleName();
+    private static final String LOG_TAG_PERFORMANCE = TagManager.class.getSimpleName() + ".Performance";
+
     private static final String PREF_KEY = "com.coolninja.agecalculator.pref.TAGMANAGER";
     private static final String TAGS_KEY = "com.coolninja.agecalculator.pref.TAGMANAGER.TAGS";
 

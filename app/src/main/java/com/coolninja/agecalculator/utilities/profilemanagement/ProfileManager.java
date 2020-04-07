@@ -5,8 +5,8 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.coolninja.agecalculator.R;
-import com.coolninja.agecalculator.ui.MainActivity;
 import com.coolninja.agecalculator.utilities.Birthday;
+import com.coolninja.agecalculator.utilities.codes.Error;
 import com.coolninja.agecalculator.utilities.tagmanagement.TagManager;
 
 import org.json.JSONArray;
@@ -14,13 +14,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_I;
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_W;
 
 public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedListener {
     private static final String LOG_TAG = ProfileManager.class.getSimpleName();
+    private static final String LOG_TAG_PERFORMANCE = ProfileManager.class.getSimpleName() + ".Performance";
+
     private static final String PROFILE_MANAGER_PREF = "com.coolninja.agecalculator.agecalculator.pref.PROFILEMANAGER";
     private static final String JSON_PROFILES_KEY = "com.coolninja.agecalculator.pref.PROFILEMANAGER.JSONPROFILES";
-
-    private final int DEFAULT_ERROR_CODE;
 
     private static int nextProfileId = 1001;
 
@@ -31,16 +37,21 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     private JSONArray mJsonProfiles = new JSONArray();
 
     private ProfileManager(Context context) {
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Constructing a new Profile Manager");
+        if (LOG_V) Log.v(LOG_TAG, "Constructing a new Profile Manager");
 
         mContext = context;
         mPref = mContext.getSharedPreferences(PROFILE_MANAGER_PREF, Context.MODE_PRIVATE);
+    }
+
+    private void setUpTagManager() {
         mTagManager = TagManager.getTagManager(mContext);
-        DEFAULT_ERROR_CODE = Integer.parseInt(mContext.getString(R.string.default_error_value));
     }
 
     public static ProfileManager getProfileManager(Context context) {
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Retrieving Profile Manager");
+        Calendar startTime;
+        if (LOG_D) startTime = Calendar.getInstance();
+
+        if (LOG_V) Log.v(LOG_TAG, "Retrieving Profile Manager");
         ProfileManager manager = new ProfileManager(context);
 
         SharedPreferences pref = context.getSharedPreferences(PROFILE_MANAGER_PREF, Context.MODE_PRIVATE);
@@ -49,39 +60,47 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         if (pref.contains(JSON_PROFILES_KEY)) {
             try {
                 jsonProfiles = new JSONArray(pref.getString(JSON_PROFILES_KEY, ""));
-                if (MainActivity.LOG_V) Log.v(LOG_TAG, "Retrieved json profiles array from preference\n" + jsonProfiles.toString(4));
+                if (LOG_V) Log.v(LOG_TAG, "Retrieved json profiles array from preference\n" + jsonProfiles.toString(4));
 
                 for (int i = 0; i < jsonProfiles.length(); i++) {
+                    Calendar RetrieveOneStartTime;
+                    if (LOG_D) RetrieveOneStartTime = Calendar.getInstance();
+
                     JSONObject jsonProfile = jsonProfiles.getJSONObject(i);
 
                     int id = jsonProfile.getInt(Profile.ID);
-                    if (MainActivity.LOG_I) Log.i(LOG_TAG, "Found profile w/ ID: " + id);
+                    if (LOG_I) Log.i(LOG_TAG, "Found profile w/ ID: " + id);
 
                     String name = jsonProfile.getString(Profile.NAME);
                     if (name.equals(context.getString(R.string.default_name))) Log.w(LOG_TAG, "Profile name is missing for profile w/ ID: " + id);
-                    else if (MainActivity.LOG_I) Log.i(LOG_TAG, "Profile name found: " + name);
+                    else if (LOG_I) Log.i(LOG_TAG, "Profile name found: " + name);
 
                     int year = jsonProfile.getInt(Profile.BIRTH_YEAR);
                     if (year == Integer.parseInt(context.getString(R.string.default_birth_year))) Log.w(LOG_TAG, "Birth year is missing for profile w/ ID: " + id);
-                    else if (MainActivity.LOG_I) Log.i(LOG_TAG, "Birth year found: " + year);
+                    else if (LOG_I) Log.i(LOG_TAG, "Birth year found: " + year);
 
                     int month = jsonProfile.getInt(Profile.BIRTH_MONTH);
                     if (month == Integer.parseInt(context.getString(R.string.default_birth_month))) Log.w(LOG_TAG, "Birth month is missing for profile w/ ID: " + id);
-                    else if (MainActivity.LOG_I) Log.i(LOG_TAG, "Birth month found: " + month);
+                    else if (LOG_I) Log.i(LOG_TAG, "Birth month found: " + month);
 
                     int day = jsonProfile.getInt(Profile.BIRTH_DAY);
                     if (day == Integer.parseInt(context.getString(R.string.default_birth_day))) Log.w(LOG_TAG, "Profile birth year is missing for profile w/ ID: " + id);
-                    else if (MainActivity.LOG_I) Log.i(LOG_TAG, "Birth day found: " + day);
+                    else if (LOG_I) Log.i(LOG_TAG, "Birth day found: " + day);
 
                     Birthday dob = new Birthday(year, month, day);
 
                     if (nextProfileId <= id) {
                         nextProfileId = id + 1;
-                        if (MainActivity.LOG_I) Log.i(LOG_TAG, "Max set profile id is now: " + getMaxedId());
+                        if (LOG_I) Log.i(LOG_TAG, "Max set profile id is now: " + getMaxedId());
                     }
 
                     Profile profile = new Profile(name, dob, id, manager);
                     manager.addProfile(profile);
+
+                    if (LOG_D) {
+                        Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - RetrieveOneStartTime.getTimeInMillis())
+                                + " milliseconds to retrieve one profile from json array");
+                    }
 
                 }
             } catch (JSONException e) {
@@ -89,48 +108,62 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
                 e.printStackTrace();
             }
         } else {
-            if (MainActivity.LOG_V) Log.v(LOG_TAG, "Preference doesn't contain json profiles");
+            if (LOG_V) Log.v(LOG_TAG, "Preference doesn't contain json profiles");
         }
-        
+
+        if (LOG_D) {
+            Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
+                    + " milliseconds to get " + ProfileManager.class.getSimpleName());
+        }
+
+        manager.setUpTagManager();
         return manager;
     }
 
     public void addProfile(Profile profile) {
-        ArrayList<Integer> ids = getProfileIds();
+        Calendar startTime;
+        if (LOG_D) startTime = Calendar.getInstance();
 
-        if (profile.getId() == Profile.DEFAULT_ERROR_CODE) { //Precaution step; plan of removal exists
+        if (profile.getId() == Error.NOT_FOUND) { //Precaution step; plan of removal exists
             Log.wtf(LOG_TAG, "Profile ID was not set for the profile w/ name: " + profile.getName());
+            ArrayList<Integer> ids = getProfileIds();
             do {
                 profile.setId(nextProfileId);
             } while (ids.contains(nextProfileId++));
         }
+
         if (getProfileIds().contains(profile.getId())) {
             Log.w(LOG_TAG, "Couldn't add profile because another profile with the same ID already exists");
             return;
         }
 
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " to the profile manager");
+        if (LOG_V) Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " to the profile manager");
         mProfiles.add(profile);
         mJsonProfiles.put(profile.toJSONObject());
-        if (MainActivity.LOG_D) Log.d(LOG_TAG, "Last profile index: " + (mProfiles.size() - 1)
+        if (LOG_D) Log.d(LOG_TAG, "Last profile index: " + (mProfiles.size() - 1)
                 + "\nLast profile index in json array: " + (mJsonProfiles.length() - 1));
 
         updatePreference();
 
+        if (LOG_D) {
+            Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
+                    + " milliseconds to add a new profile");
+        }
+
         if (mContext instanceof ProfileManagerInterface.onProfileAddedListener) {
             ((ProfileManagerInterface.onProfileAddedListener) mContext).onProfileAdded(profile);
         } else {
-            if (MainActivity.LOG_W) Log.w(LOG_TAG, mContext.getClass().getSimpleName() + " does not not implement " + ProfileManagerInterface.onProfileAddedListener.class.getSimpleName() +" interface");
+            if (LOG_W) Log.w(LOG_TAG, mContext.getClass().getSimpleName() + " does not not implement " + ProfileManagerInterface.onProfileAddedListener.class.getSimpleName() +" interface");
         }
     }
 
     private void updatePreference() {
-        if (MainActivity.LOG_V) {
+        if (LOG_V) {
             try {
                 Log.v(LOG_TAG, "Updating preference w/\n" + mJsonProfiles.toString(4));
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "Couldn't log statement of updating preference");
-                if (MainActivity.LOG_D) Log.d(LOG_TAG, "JSONArray: " + mJsonProfiles.toString());
+                if (LOG_D) Log.d(LOG_TAG, "JSONArray: " + mJsonProfiles.toString());
                 e.printStackTrace();
             }
         }
@@ -142,7 +175,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
     @Override
     public void onProfileDateOfBirthChanged(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Setting new date of birth in json for profile w/ ID " + profileId);
+        if (LOG_V) Log.v(LOG_TAG, "Setting new date of birth in json for profile w/ ID " + profileId);
 
         JSONObject object = getJsonProfile(profileId);
         assert object != null : "No json object for profile w/ ID " + profileId + " was found";
@@ -200,7 +233,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     }
 
     public Profile getProfileById(int id) {
-        if (id == DEFAULT_ERROR_CODE) {
+        if (id == Error.NOT_FOUND) {
             Log.w(LOG_TAG, "Profile id is a error code; it sure does not exist");
             return null;
         }
@@ -228,7 +261,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     }
 
     public void pinProfile(int profileId, boolean isPinned) {
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, (isPinned? "Pinning " : "Unpinning ") + "Profile w/ ID " + profileId);
+        if (LOG_V) Log.v(LOG_TAG, (isPinned? "Pinning " : "Unpinning ") + "Profile w/ ID " + profileId);
 
         if (isPinned) {
             mTagManager.tagProfile(profileId, TagManager.PIN);
@@ -283,9 +316,9 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     }
 
     public static boolean isPinned(int profileId) {
-        if (MainActivity.LOG_D) Log.d(LOG_TAG, "Checking if profile w/ ID " + profileId + " is pinned");
+        if (LOG_D) Log.d(LOG_TAG, "Checking if profile w/ ID " + profileId + " is pinned");
         boolean result = TagManager.getTaggedIds(TagManager.PIN).contains(profileId);
-        if (MainActivity.LOG_D) Log.d(LOG_TAG, (result? "Affirmative" : "Negative") + " on is pinned check");
+        if (LOG_D) Log.d(LOG_TAG, (result? "Affirmative" : "Negative") + " on is pinned check");
 
         return result;
     }
@@ -311,7 +344,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
             try {
                 if (mJsonProfiles.getJSONObject(i).getInt(Profile.ID) == profileId) {
                     mJsonProfiles.remove(i);
-                    if (MainActivity.LOG_V) Log.v(LOG_TAG, "Removed profile w/ ID " + profileId + " from the json profiles");
+                    if (LOG_V) Log.v(LOG_TAG, "Removed profile w/ ID " + profileId + " from the json profiles");
 
                     break;
                 }
@@ -329,5 +362,9 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
     public static int getMaxedId() {
         return nextProfileId - 1;
+    }
+
+    public static boolean containsProfilePreference(Context context) {
+        return context.getSharedPreferences(PROFILE_MANAGER_PREF, Context.MODE_PRIVATE).contains(JSON_PROFILES_KEY);
     }
 }

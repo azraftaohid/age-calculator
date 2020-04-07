@@ -19,12 +19,7 @@ import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManagerInt
 
 import java.util.Objects;
 
-public class ChangeDateOfBirthDialog extends DialogFragment {
-    private int mPrevBirthYear;
-    private int mPrevBirthMonth;
-    private int mPrevBirthDay;
-
-    private ProfileManagerInterface.onProfileUpdatedListener mOnProfileUpdatedListener;
+public class ChangeDateOfBirthDialog extends DialogFragment {private ProfileManagerInterface.onProfileUpdatedListener mOnProfileUpdatedListener;
     private EditText mNewDobEditText;
     private BirthdayPickerDialog mBirthdayPicker;
 

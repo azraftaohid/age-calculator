@@ -10,12 +10,15 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.coolninja.agecalculator.utilities.AddProfileDialog;
 import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Age;
 import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.ChangeDateOfBirthDialog;
+import com.coolninja.agecalculator.utilities.codes.Error;
 import com.coolninja.agecalculator.utilities.RenameDialog;
 import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManager;
@@ -27,6 +30,7 @@ import com.microsoft.officeuifabric.popupmenu.PopupMenuItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -38,53 +42,62 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     public static final String EXTRA_MONTH = "com.coolninja.agecalculator.extra.MONTH";
     public static final String EXTRA_DAY = "com.coolninja.agecalculator.extra.DAY";
     public static final String EXTRA_PROFILE_ID = "com.coolninja.agecalculator.extra.PROFILE_ID";
+
     public static final int LOG_LEVEL = Log.VERBOSE;
     public static final boolean LOG_V = LOG_LEVEL <= Log.DEBUG;
     public static final boolean LOG_D = LOG_LEVEL <= Log.DEBUG;
     public static final boolean LOG_I = LOG_LEVEL <= Log.INFO;
     public static final boolean LOG_W = LOG_LEVEL <= Log.WARN;
+
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
+    private static final String LOG_TAG_PERFORMANCE = MainActivity.class.getSimpleName() + ".Performance";
 
     private LinearLayout mPinnedProfilesListView;
     private LinearLayout mOtherProfilesListView;
     private LinearLayout mPinnedListView;
     private LinearLayout mOthersListView;
+    private ScrollView mProfilesScrollView;
+    private TextView mEmptyProfilesTextView;
 
     private ProfileManager mProfileManager;
 
-    private int mDefaultErrorCode;
-    private long mStartTime;
-    static final int DEFAULT_DOB_REQUEST = 1111;
+    private static final int DOB_REQUEST = 1111;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Calendar startTime;
+        if (LOG_D) startTime = Calendar.getInstance();
+
+        if (!ProfileManager.containsProfilePreference(this)) {
+            launchWelcomeActivity();
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mDefaultErrorCode = Integer.parseInt(getString(R.string.default_error_value));
         mPinnedListView = findViewById(R.id.ll_pinned);
         mOthersListView = findViewById(R.id.ll_others);
         mPinnedProfilesListView = findViewById(R.id.ll_pinned_profiles);
         mOtherProfilesListView = findViewById(R.id.ll_other_profiles);
-        mStartTime = System.currentTimeMillis();
+        mProfilesScrollView = findViewById(R.id.sv_profiles);
+        mEmptyProfilesTextView = findViewById(R.id.tv_empty_profiles);
 
         mProfileManager = ProfileManager.getProfileManager(this);
 
-        if (mProfileManager.getProfiles().size() == 0) {
-            launchWelcomeActivity();
-        }
-
-
-
 //        showNumberOfProfiles();
 
-//        generateDummyProfiles(100);
+//        generateDummyProfiles(150);
+
+        if (LOG_D) {
+            Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
+                    + " milliseconds to show " + MainActivity.class.getSimpleName());
+        }
 
     }
 
     void launchWelcomeActivity() {
         Intent setUpIntent = new Intent(this, WelcomeActivity.class);
-        startActivityForResult(setUpIntent, DEFAULT_DOB_REQUEST);
+        startActivityForResult(setUpIntent, DOB_REQUEST);
     }
 
     public void launchProfileDetailsActivity(View view) {
@@ -97,12 +110,12 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == DEFAULT_DOB_REQUEST && resultCode == RESULT_OK) {
+        if (requestCode == DOB_REQUEST && resultCode == RESULT_OK) {
             if (data != null) {
                 String name = data.getStringExtra(EXTRA_NAME);
-                Birthday dob = new Birthday(data.getIntExtra(EXTRA_YEAR, mDefaultErrorCode),
-                        data.getIntExtra(EXTRA_MONTH, mDefaultErrorCode),
-                        data.getIntExtra(EXTRA_DAY, mDefaultErrorCode));
+                Birthday dob = new Birthday(data.getIntExtra(EXTRA_YEAR, Error.NOT_FOUND),
+                        data.getIntExtra(EXTRA_MONTH, Error.NOT_FOUND),
+                        data.getIntExtra(EXTRA_DAY, Error.NOT_FOUND));
 
                 Profile profile = new Profile(name, dob, new ProfileManagerInterface.onProfileUpdatedListener() {
                     @Override
@@ -140,15 +153,19 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         }
 
         synchronizeVisibleStatus();
-
-        long requiredTime = System.currentTimeMillis() - mStartTime;
-        if (LOG_D) Log.d(LOG_TAG, "It took " + requiredTime + " milliseconds to complete");
     }
 
     private PersonaView generateProfileView(Profile profile) {
+        Calendar startTime;
+        if (LOG_D) startTime = Calendar.getInstance();
+
+        if (LOG_V) Log.v(LOG_TAG, "Getting an instance of persona view");
         final PersonaView personaView = new PersonaView(this);
+
+        if (LOG_V) Log.v(LOG_TAG, "Getting age from given profile");
         long[] age = profile.getAge().get(Age.MODE_YEAR_MONTH_DAY);
 
+        if (LOG_V) Log.v(LOG_TAG, "Setting attributes for persona view");
         personaView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT));
         personaView.setName(profile.getName());
@@ -158,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         personaView.setLongClickable(true);
         personaView.setId(profile.getId());
 
+        if (LOG_V) Log.v(LOG_TAG, "Setting on click listener for persona view");
         Objects.requireNonNull(personaView.getCustomAccessoryView()).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -180,11 +198,18 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
             }
         });
 
+        if (LOG_D) {
+            Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
+                    + " milliseconds to generate a profile view");
+        }
         return personaView;
     }
 
     private void showMoreOptions(final PersonaView personaView) {
         assert personaView.getCustomAccessoryView() != null : "PersonaView with ID " + personaView.getId() + " must have a custom accessory view";
+
+        Calendar startTime;
+        if (LOG_D) startTime = Calendar.getInstance();
 
         ArrayList<PopupMenuItem> popupMenuItems = new ArrayList<>();
         final int id = personaView.getId();
@@ -231,7 +256,12 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
             }
         });
 
+
         popupMenu.show();
+        if (LOG_D) {
+            Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis()) + "milliseconds" +
+                    "to show popup menu");
+        }
     }
 
     private PersonaView getPersonaViewById(int id) {
@@ -264,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         long startTime = System.currentTimeMillis();
 
         for (int i = 0; i < howMany; i++) {
-            onSubmit(("Dummy " + (i + 200)), new Birthday(1920, 5, 24));
+            onSubmit(("Dummy " + (i + 100)), new Birthday(1920, 5, 24));
         }
 
         long requiredTime = System.currentTimeMillis() - startTime;
@@ -272,21 +302,36 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     }
 
     private void synchronizeVisibleStatus() {
-        boolean launchWelcomeActivity = true;
+        Calendar startTime;
+        if (LOG_D) startTime = Calendar.getInstance();
+
+        boolean isEmpty = true;
 
         if (mPinnedProfilesListView.getChildCount() == 0) mPinnedListView.setVisibility(View.GONE);
         else {
             mPinnedListView.setVisibility(View.VISIBLE);
-            launchWelcomeActivity = false;
+            isEmpty = false;
         }
 
         if (mOtherProfilesListView.getChildCount() == 0) mOthersListView.setVisibility(View.GONE);
         else {
             mOthersListView.setVisibility(View.VISIBLE);
-            launchWelcomeActivity = false;
+            isEmpty = false;
         }
 
-        if (launchWelcomeActivity) launchWelcomeActivity();
+        if (isEmpty) {
+            mProfilesScrollView.setVisibility(View.GONE);
+            mEmptyProfilesTextView.setVisibility(View.VISIBLE);
+        }
+        else {
+            mEmptyProfilesTextView.setVisibility(View.GONE);
+            mProfilesScrollView.setVisibility(View.VISIBLE);
+        }
+
+        if (LOG_D) {
+            Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
+                    + " milliseconds to synchronize visible status");
+        }
     }
 
     @Override
@@ -360,8 +405,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     @Override
     public void onProfileAdded(Profile profile) {
         PersonaView personaView = generateProfileView(profile);
-        if (ProfileManager.isPinned(profile.getId())) mPinnedProfilesListView.addView(personaView);
-        else mOtherProfilesListView.addView(personaView);
+        mOtherProfilesListView.addView(personaView);
 
         synchronizeVisibleStatus();
     }
