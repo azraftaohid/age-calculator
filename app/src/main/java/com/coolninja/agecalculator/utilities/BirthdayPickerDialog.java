@@ -1,4 +1,4 @@
-package com.coolninja.agecalculator;
+package com.coolninja.agecalculator.utilities;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -23,9 +23,10 @@ public class BirthdayPickerDialog extends DialogFragment {
     }
 
 
+    @SuppressWarnings("WeakerAccess")
     public static BirthdayPickerDialog newInstance(DatePickerDialog.OnDateSetListener onDateSetListener, int year, int month, int day) {
         BirthdayPickerDialog datePicker =  new BirthdayPickerDialog();
-        datePicker.setOnDateSetListener(onDateSetListener);
+        datePicker.mOnDateSetListener = onDateSetListener;
 
         Bundle date = new Bundle();
         date.putInt(YEAR, year);
@@ -43,16 +44,12 @@ public class BirthdayPickerDialog extends DialogFragment {
         if (mDatePickerDialog == null) {
             Bundle args = getArguments();
             assert args != null : "No arguments found. Don't use the default constructor to initiate BirthdayPicker object. " +
-                    "Use static method instead";
+                    "Use the static method instead";
 
             mDatePickerDialog = new DatePickerDialog(Objects.requireNonNull(getActivity()), mOnDateSetListener,
                     args.getInt(YEAR), args.getInt(MONTH), args.getInt(DAY));
         }
 
         return mDatePickerDialog;
-    }
-
-    public void setOnDateSetListener(DatePickerDialog.OnDateSetListener onDateSetListener) {
-        this.mOnDateSetListener = onDateSetListener;
     }
 }
