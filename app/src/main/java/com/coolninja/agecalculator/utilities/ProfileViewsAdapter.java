@@ -192,6 +192,13 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
         this.notifyItemInserted(getItemCount() - 1);
     }
 
+    public void addProfile(int position, Profile profile) {
+        if (LOG_V) Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " at position " + position + " to adapter " + mAdapterNumber);
+
+        mProfiles.add(position, profile);
+        this.notifyItemInserted(position);
+    }
+
     @Override
     public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
         notifyItemChanged(getProfilePosition(profileId));
@@ -209,7 +216,6 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
         if (LOG_V) Log.v(LOG_TAG, "Removing profile view at position: " + position);
         mProfiles.remove(position);
         notifyItemRemoved(position);
-
     }
 
     private int getProfilePosition(int profileId) {

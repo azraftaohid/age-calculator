@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     public static final String EXTRA_DAY = "com.coolninja.agecalculator.extra.DAY";
     public static final String EXTRA_PROFILE_ID = "com.coolninja.agecalculator.extra.PROFILE_ID";
 
-    public static final int LOG_LEVEL = Log.VERBOSE;
+    public static final int LOG_LEVEL = Log.DEBUG;
     @SuppressWarnings("ConstantConditions")
     public static final boolean LOG_V = LOG_LEVEL <= Log.DEBUG;
     @SuppressWarnings("ConstantConditions")
@@ -232,10 +232,10 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         Profile profile = mProfileManager.getProfileById(profileId);
         if (isPinned) {
             mOtherProfileViewsAdapter.removeProfile(profileId);
-            mPinnedProfileViewsAdapter.addProfile(profile);
+            mPinnedProfileViewsAdapter.addProfile(0, profile);
         } else {
             mPinnedProfileViewsAdapter.removeProfile(profileId);
-            mOtherProfileViewsAdapter.addProfile(profile);
+            mOtherProfileViewsAdapter.addProfile(0, profile);
         }
 
         synchronizeVisibleStatus();
