@@ -1,5 +1,6 @@
 package com.coolninja.agecalculator.utilities;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -66,7 +67,7 @@ public class AddProfileDialog extends DialogFragment {
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
-        View root = inflater.inflate(R.layout.dialog_add_profile, null);
+        @SuppressLint("InflateParams") View root = inflater.inflate(R.layout.dialog_add_profile, null);
 
         mDobEditText = root.findViewById(R.id.et_dob_new_profile);
         mNameEditText = root.findViewById(R.id.et_name_new_profile);

@@ -1,8 +1,9 @@
 package com.coolninja.agecalculator;
 
-import android.util.Log;
+import com.coolninja.agecalculator.utilities.Birthday;
 
 import org.junit.Test;
+
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -30,5 +31,21 @@ public class GeneralTest {
 
         assertThat(array[2], is(equalTo(69)));
         assertThat(array[0], is(equalTo(0)));
+    }
+
+    @Test
+    public void general() {
+        String x = "tomato";
+        String y = x;
+
+        x.concat("es");
+
+        Birthday a = new Birthday(2000, 11, 5);
+        Birthday b = a;
+
+        a.set(Birthday.DAY, 9);
+
+        assertThat(y, is(equalTo("tomatoes"))); //false; a new instance of String was returned when it was updated
+        assertThat(b.get(Birthday.DAY), is(equalTo(9))); //true
     }
 }

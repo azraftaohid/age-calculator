@@ -32,23 +32,6 @@ public class Age {
     private int mBirthMonth;
     private int mBirthDay;
 
-    @Deprecated
-    private long mAgeYears;
-    @Deprecated
-    private long mAgeRemainderMonthsAfterYear;
-    @Deprecated
-    private long mAgeRemainderDaysAfterMonth;
-    @Deprecated
-    private long mAgeRemainderDaysAfterYear;
-    @Deprecated
-    private long mAgeInDays;
-    @Deprecated
-    private long mAgeInHours;
-    @Deprecated
-    private long mAgeInMinutes;
-    @Deprecated
-    private long mAgeInSeconds;
-
     public Age(int birthYear, int birthMonth, int birthDay) {
         mBirthYear = birthYear;
         mBirthMonth = birthMonth;
@@ -59,50 +42,6 @@ public class Age {
         mBirthYear = dateOfBirth.get(Birthday.YEAR);
         mBirthMonth = dateOfBirth.get(Birthday.MONTH);
         mBirthDay = dateOfBirth.get(Birthday.DAY);
-    }
-
-    @Deprecated
-    private void calculateAge(int mode) {
-        Calendar dateOfBirth = Calendar.getInstance();
-        Calendar c = Calendar.getInstance();
-
-        long toDaysDivisor = 1000 * 60 * 60 * 24; //millis to seconds to minutes to hours to days
-        long toYearsDivisor = toDaysDivisor * 365; //365 is important and can not be 366
-
-        dateOfBirth.set(Calendar.YEAR, mBirthYear);
-        dateOfBirth.set(Calendar.MONTH, mBirthMonth);
-        dateOfBirth.set(Calendar.DAY_OF_MONTH, mBirthDay);
-
-        long ageInMillis = c.getTimeInMillis() - dateOfBirth.getTimeInMillis();
-        mAgeInDays = Long.valueOf(ageInMillis / toDaysDivisor).intValue();
-
-        if (mode == MODE_YEAR_MONTH_DAY || mode == MODE_YEAR_DAY) {
-            mAgeRemainderDaysAfterYear = mAgeInDays % 365 - getNumberOfLeapDays(dateOfBirth, c);
-
-            if (isLeapYear(c.get(Calendar.YEAR)) && (mBirthMonth < Calendar.FEBRUARY || (mBirthMonth == Calendar.FEBRUARY && mBirthDay < 29))) {
-                mAgeRemainderDaysAfterYear++;
-            }
-
-            mAgeRemainderDaysAfterMonth = getDurationInRemainderDaysAfterMonth(Month.values()[dateOfBirth.get(Calendar.MONTH)],
-                    dateOfBirth.get(Calendar.DAY_OF_MONTH), c.get(Calendar.DAY_OF_MONTH));
-            mAgeRemainderMonthsAfterYear = getDurationInRemainderMonthsAfterYear(dateOfBirth.get(Calendar.MONTH), c.get(Calendar.MONTH),
-                    dateOfBirth.get(Calendar.DAY_OF_MONTH) > c.get(Calendar.DAY_OF_MONTH));
-            mAgeYears = Double.valueOf(Math.floor((float) ageInMillis / toYearsDivisor)).intValue();
-
-            if (mAgeRemainderDaysAfterYear < 0) {
-                mAgeYears--;
-                mAgeRemainderDaysAfterYear += 365;
-            }
-        } else if (mode == MODE_HOUR) {
-            mAgeInHours = mAgeInDays * 24;
-        } else if (mode == MODE_MINUTES) {
-            mAgeInMinutes = mAgeInDays * 24 * 60;
-        } else if (mode == MODE_SECONDS) {
-            mAgeInSeconds = mAgeInDays * 24 * 60 * 60;
-        } else if (mode != MODE_DAY) {
-            Log.w(LOG_TAG, "Unsupported mode passed: " + mode);
-        }
-
     }
 
     public static long[] calculateDuration(int startYear, int startMonth, int startDay, int endYear, int endMonth, int endDay, int returnMode) {
@@ -257,21 +196,6 @@ public class Age {
         }
 
         return leapDays;
-    }
-
-    @Deprecated
-    public long getDays() {
-        return mAgeRemainderDaysAfterMonth;
-    }
-
-    @Deprecated
-    public long getMonths() {
-        return mAgeRemainderMonthsAfterYear;
-    }
-
-    @Deprecated
-    public long getYears() {
-        return mAgeYears;
     }
 
     public long[] get(int mode) {

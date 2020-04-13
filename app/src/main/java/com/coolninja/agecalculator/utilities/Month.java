@@ -26,6 +26,7 @@ public enum Month {
         mNumberOfDays = numberOfDays;
     }
 
+    @SuppressWarnings("unused")
     public Month getMonthByShortName(String name) {
         for (Month month : Month.values()) {
             if (month.getShortName().equalsIgnoreCase(name))

@@ -1,12 +1,9 @@
 package com.coolninja.agecalculator.utilities.tagmanagement;
 
-import android.util.Log;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 enum Tag {
@@ -25,10 +22,12 @@ enum Tag {
         mProfileIds.add(0, profileId);
     }
 
+    @SuppressWarnings("unused")
     int getMostRecentlyAdded() {
         return mProfileIds.get(0);
     }
 
+    @SuppressWarnings("unused")
     int getProfileId(int index) {
         return mProfileIds.get(index);
     }
@@ -38,19 +37,19 @@ enum Tag {
     }
 
     void removeProfile(int profileId) {
-        int size = mProfileIds.size(); //So don't have to count size in each loop
-        for (int i = 0; i < size; i++) {
-            if (mProfileIds.get(i) == profileId) {
-                mProfileIds.remove(i);
-                break; //Must call the break statement
-            }
-        }
+        mProfileIds.remove(Integer.valueOf(profileId));
+    }
+
+    @SuppressWarnings("unused")
+    void removeProfileAt(int position) {
+        mProfileIds.remove(position);
     }
 
     String getSimpleName() {
         return mSimpleName;
     }
 
+    @SuppressWarnings("unused")
     JSONObject toJsonObject() {
         JSONObject object = new JSONObject();
 

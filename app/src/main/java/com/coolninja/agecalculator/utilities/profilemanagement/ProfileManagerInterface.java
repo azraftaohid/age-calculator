@@ -8,8 +8,8 @@ public class ProfileManagerInterface {
     }
 
     public interface onProfileUpdatedListener {
-        void onProfileDateOfBirthChanged(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay);
-        void onProfileNameChanged(int profileId, String newName, String previousName);
+        void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay);
+        void onProfileNameUpdated(int profileId, String newName, String previousName);
     }
 
     public interface onProfileRemovedListener {
@@ -18,5 +18,15 @@ public class ProfileManagerInterface {
 
     public interface onProfilePinnedListener {
         void onProfilePinned(int profileId, boolean isPinned);
+    }
+
+    @SuppressWarnings("unused")
+    public interface updatable {
+        String getName();
+        Birthday getBirthday();
+        void updateName(String newName);
+        void updateBirthday(int newBirthYear, int newBirthMonth, int newBirthDay);
+        String getPreviousName();
+        Birthday getPreviousBirthday();
     }
 }

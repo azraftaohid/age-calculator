@@ -12,17 +12,18 @@
         android:layout_height="wrap_content"
         android:text="@string/empty_profiles"
         android:textAppearance="@style/TextAppearance.UIFabric.Caption"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/sv_profiles"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -51,13 +52,14 @@
                     android:textAppearance="@style/TextAppearance.UIFabric.ListItemSubtitle"
                     android:visibility="visible" />
 
-                <LinearLayout
-                    android:id="@+id/ll_pinned_profiles"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_pinned_profiles"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:orientation="vertical"
-                    android:visibility="visible" />
+                    android:visibility="visible">
+
+                </androidx.recyclerview.widget.RecyclerView>
 
             </LinearLayout>
 
@@ -78,18 +80,19 @@
                     android:textAppearance="@style/TextAppearance.UIFabric.ListItemSubtitle"
                     android:visibility="visible" />
 
-                <LinearLayout
-                    android:id="@+id/ll_other_profiles"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_other_profiles"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:orientation="vertical"
-                    android:visibility="visible" />
+                    android:visibility="visible">
+
+                </androidx.recyclerview.widget.RecyclerView>
 
             </LinearLayout>
 
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_profile"

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
+@SuppressWarnings("unused")
 public class CommonUtilities {
 
     public static boolean hideSoftKeyboard(Activity activity, View view) {

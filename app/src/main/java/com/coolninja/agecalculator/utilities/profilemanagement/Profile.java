@@ -10,7 +10,7 @@ import com.coolninja.agecalculator.utilities.codes.Error;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Profile {
+public class Profile implements ProfileManagerInterface.updatable {
     private static final String LOG_TAG = Profile.class.getSimpleName();
 
     static final String ID = "profile.id";
@@ -19,10 +19,13 @@ public class Profile {
     static final String BIRTH_MONTH = "profile.dob.month";
     static final String BIRTH_DAY = "profile.dob.day";
 
+    @SuppressWarnings("UnusedAssignment")
     private int mId = Error.NOT_FOUND; //Precaution step; in case constructor did not set id
     private Birthday mDateOfBirth;
+    private Birthday mPrevDateOfBirth;
 
     private String mName;
+    private String mPrevName;
     private ProfileManagerInterface.onProfileUpdatedListener mOnProfileUpdateListener;
 
     public Profile(String name, Birthday birthday, ProfileManagerInterface.onProfileUpdatedListener onProfileUpdatedListener) {
@@ -43,36 +46,51 @@ public class Profile {
         mDateOfBirth = dateOfBirth;
     }
 
-    public void setName(String newName) {
+    @Override
+    public void updateName(String newName) {
         if (MainActivity.LOG_V) Log.v(LOG_TAG, "Setting a new name for profile w/ ID " + mId);
 
-        String previousName = mName;
+        mPrevName = mName;
         mName = newName;
 
         if (mOnProfileUpdateListener != null)
-            mOnProfileUpdateListener.onProfileNameChanged(mId, newName, previousName);
+            mOnProfileUpdateListener.onProfileNameUpdated(mId, newName, mPrevName);
     }
 
-    public void setDateOfBirth(int year, int month, int day) {
+    @Override
+    public void updateBirthday(int year, int month, int day) {
         if (MainActivity.LOG_V) Log.v(LOG_TAG, "Setting a new date of birth for profile w/ ID " + mId);
 
-        Birthday prevDateOfBirth = mDateOfBirth;
+        mPrevDateOfBirth = new Birthday(mDateOfBirth.get(Birthday.YEAR), mDateOfBirth.get(Birthday.MONTH), mDateOfBirth.get(Birthday.YEAR));
+
         mDateOfBirth.set(Birthday.YEAR, year);
         mDateOfBirth.set(Birthday.MONTH, month);
         mDateOfBirth.set(Birthday.DAY, day);
 
-        mOnProfileUpdateListener.onProfileDateOfBirthChanged(mId, year, month, day, prevDateOfBirth);
+        mOnProfileUpdateListener.onProfileDateOfBirthUpdated(mId, year, month, day, mPrevDateOfBirth);
     }
 
     void setId(int id) {
         mId = id;
     }
 
+    @Override
+    public String getPreviousName() {
+        return mPrevName;
+    }
+
+    @Override
+    public Birthday getPreviousBirthday() {
+        return mPrevDateOfBirth;
+    }
+
+    @Override
     public String getName() {
         return mName;
     }
 
-    public Birthday getDateOfBirth() {
+    @Override
+    public Birthday getBirthday() {
         return mDateOfBirth;
     }
 
@@ -107,5 +125,4 @@ public class Profile {
 
         return object;
     }
-
 }

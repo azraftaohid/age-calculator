@@ -1,10 +1,12 @@
 package com.coolninja.agecalculator.utilities;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.DatePicker;
@@ -19,7 +21,12 @@ import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManagerInt
 
 import java.util.Objects;
 
-public class ChangeDateOfBirthDialog extends DialogFragment {private ProfileManagerInterface.onProfileUpdatedListener mOnProfileUpdatedListener;
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
+
+public class ChangeDateOfBirthDialog extends DialogFragment {
+    private static final String LOG_TAG = ChangeDateOfBirthDialog.class.getSimpleName();
+
+    private ProfileManagerInterface.updatable mUpdatable;
     private EditText mNewDobEditText;
     private BirthdayPickerDialog mBirthdayPicker;
 
@@ -27,26 +34,32 @@ public class ChangeDateOfBirthDialog extends DialogFragment {private ProfileMana
 
     }
 
-    public static ChangeDateOfBirthDialog newInstance(ProfileManagerInterface.onProfileUpdatedListener onProfileUpdatedListener, int previousYear, int previousMonth, int previousDay) {
-        final ChangeDateOfBirthDialog changeDateOfBirthDialog = new ChangeDateOfBirthDialog();
-        changeDateOfBirthDialog.mOnProfileUpdatedListener = onProfileUpdatedListener;
+    @SuppressWarnings("WeakerAccess")
+    public static ChangeDateOfBirthDialog newInstance(ProfileManagerInterface.updatable updatable) {
+        if (LOG_V) Log.v(LOG_TAG, "Initializing a new instance of change date of birth dialog");
 
+        final ChangeDateOfBirthDialog changeDateOfBirthDialog = new ChangeDateOfBirthDialog();
+        changeDateOfBirthDialog.mUpdatable = updatable;
+
+        Birthday currentBday = updatable.getBirthday();
         changeDateOfBirthDialog.mBirthdayPicker = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 changeDateOfBirthDialog.mNewDobEditText.setText(String.format(changeDateOfBirthDialog.requireActivity()
                         .getString(R.string.short_date_format), month + 1, dayOfMonth, year));
             }
-        }, previousYear, previousMonth, previousDay);
+        }, currentBday.get(Birthday.YEAR), currentBday.get(Birthday.MONTH), currentBday.get(Birthday.DAY));
         return changeDateOfBirthDialog;
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        if (LOG_V) Log.v(LOG_TAG, "Showing change date of birth dialog");
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
-        View root = inflater.inflate(R.layout.dialog_change_dob, null);
+        @SuppressLint("InflateParams") View root = inflater.inflate(R.layout.dialog_change_dob, null);
 
         mNewDobEditText = root.findViewById(R.id.et_new_date_of_birth);
         mNewDobEditText.setOnClickListener(new View.OnClickListener() {
@@ -69,7 +82,7 @@ public class ChangeDateOfBirthDialog extends DialogFragment {private ProfileMana
                         int day = Integer.parseInt(mmddyyyy[1]);
                         int year = Integer.parseInt(mmddyyyy[2]);
 
-                        mOnProfileUpdatedListener.onProfileDateOfBirthChanged(Integer.parseInt(getString(R.string.default_error_value)), year, month, day, null);
+                        mUpdatable.updateBirthday(year, month, day);
                     }
                 })
                 .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {

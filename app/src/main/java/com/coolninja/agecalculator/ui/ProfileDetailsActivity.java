@@ -62,7 +62,7 @@ public class ProfileDetailsActivity extends AppCompatActivity {
             @Override
             public void run() {
                 final Profile profile = ProfileManager.getProfileManager(ProfileDetailsActivity.this).getProfileById(profileId);
-                final Birthday birthday = profile.getDateOfBirth();
+                final Birthday birthday = profile.getBirthday();
                 Age age = profile.getAge();
 
                 final long[] durationBeforeBirthday = age.getDurationBeforeNextBirthday(Age.MODE_MONTH_DAY);

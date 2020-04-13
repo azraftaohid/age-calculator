@@ -41,9 +41,6 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
         mContext = context;
         mPref = mContext.getSharedPreferences(PROFILE_MANAGER_PREF, Context.MODE_PRIVATE);
-    }
-
-    private void setUpTagManager() {
         mTagManager = TagManager.getTagManager(mContext);
     }
 
@@ -56,17 +53,16 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
         SharedPreferences pref = context.getSharedPreferences(PROFILE_MANAGER_PREF, Context.MODE_PRIVATE);
 
-        JSONArray jsonProfiles;
         if (pref.contains(JSON_PROFILES_KEY)) {
             try {
-                jsonProfiles = new JSONArray(pref.getString(JSON_PROFILES_KEY, ""));
-                if (LOG_V) Log.v(LOG_TAG, "Retrieved json profiles array from preference\n" + jsonProfiles.toString(4));
+                manager.mJsonProfiles = new JSONArray(pref.getString(JSON_PROFILES_KEY, ""));
+                if (LOG_V) Log.v(LOG_TAG, "Retrieved json profiles array from preference\n" + manager.mJsonProfiles.toString(4));
 
-                for (int i = 0; i < jsonProfiles.length(); i++) {
+                for (int i = 0; i < manager.mJsonProfiles.length(); i++) {
                     Calendar RetrieveOneStartTime;
                     if (LOG_D) RetrieveOneStartTime = Calendar.getInstance();
 
-                    JSONObject jsonProfile = jsonProfiles.getJSONObject(i);
+                    JSONObject jsonProfile = manager.mJsonProfiles.getJSONObject(i);
 
                     int id = jsonProfile.getInt(Profile.ID);
                     if (LOG_I) Log.i(LOG_TAG, "Found profile w/ ID: " + id);
@@ -95,7 +91,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
                     }
 
                     Profile profile = new Profile(name, dob, id, manager);
-                    manager.addProfile(profile);
+                    manager.mProfiles.add(profile);
 
                     if (LOG_D) {
                         Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - RetrieveOneStartTime.getTimeInMillis())
@@ -116,7 +112,6 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
                     + " milliseconds to get " + ProfileManager.class.getSimpleName());
         }
 
-        manager.setUpTagManager();
         return manager;
     }
 
@@ -174,7 +169,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     }
 
     @Override
-    public void onProfileDateOfBirthChanged(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
         if (LOG_V) Log.v(LOG_TAG, "Setting new date of birth in json for profile w/ ID " + profileId);
 
         JSONObject object = getJsonProfile(profileId);
@@ -192,11 +187,11 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         updatePreference();
 
         if (mContext instanceof ProfileManagerInterface.onProfileUpdatedListener)
-            ((ProfileManagerInterface.onProfileUpdatedListener) mContext).onProfileDateOfBirthChanged(profileId, newBirthYear, newBirthMonth, newBirthDay, previousBirthDay);
+            ((ProfileManagerInterface.onProfileUpdatedListener) mContext).onProfileDateOfBirthUpdated(profileId, newBirthYear, newBirthMonth, newBirthDay, previousBirthDay);
     }
 
     @Override
-    public void onProfileNameChanged(int profileId, String newName, String previousName) {
+    public void onProfileNameUpdated(int profileId, String newName, String previousName) {
         Log.i(LOG_TAG, "Renaming profile w/ ID " + profileId + " from " + previousName + " to " + newName);
 
         JSONObject object = getJsonProfile(profileId);
@@ -212,10 +207,11 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         updatePreference();
 
         if (mContext instanceof ProfileManagerInterface.onProfileUpdatedListener)
-            ((ProfileManagerInterface.onProfileUpdatedListener) mContext).onProfileNameChanged(profileId, newName, previousName);
+            ((ProfileManagerInterface.onProfileUpdatedListener) mContext).onProfileNameUpdated(profileId, newName, previousName);
     }
 
 
+    @SuppressWarnings("WeakerAccess")
     public ArrayList<Integer> getProfileIds() {
         ArrayList<Integer> ids = new ArrayList<>();
 
@@ -228,8 +224,42 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         return ids;
     }
 
+    @SuppressWarnings("unused")
     public ArrayList<Profile> getProfiles() {
         return mProfiles;
+    }
+
+    public ArrayList<Profile> getPinnedProfiles() {
+        if (LOG_I) Log.i(LOG_TAG, "Getting pinned profiles");
+
+        ArrayList<Profile> profiles = new ArrayList<>();
+        ArrayList<Integer> ids = TagManager.getTaggedIds(TagManager.TAG_PIN);
+        if (LOG_V) Log.v(LOG_TAG, "Number of pinned ids: " + ids.size());
+
+        for (int id : ids) {
+            profiles.add(getProfileById(id));
+        }
+
+        if (LOG_V) Log.v(LOG_TAG, "Associated pinned profile ids: " + ids);
+
+        return profiles;
+    }
+
+    public ArrayList<Profile> getOtherProfiles() {
+        if (LOG_I) Log.i(LOG_TAG, "Getting other profiles");
+
+        ArrayList<Profile> profiles = new ArrayList<>();
+        ArrayList<Integer> ids = TagManager.getTaggedIds(TagManager.TAG_PIN);
+        ArrayList<Integer> allIds = getProfileIds();
+
+        allIds.removeAll(ids);
+        for (int id : allIds) {
+            profiles.add(getProfileById(id));
+        }
+
+        if (LOG_I) Log.i(LOG_TAG, "Associated other profile ids: " + allIds);
+
+        return profiles;
     }
 
     public Profile getProfileById(int id) {
@@ -249,9 +279,9 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     }
 
     public void removeProfile(int profileId) {
+        mTagManager.removeAllTagsFromProfile(profileId);
         removeJsonProfile(profileId);
         Log.i(LOG_TAG, "Removed profile w/ ID: " + profileId + "(" + mProfiles.remove(getProfileById(profileId)) + ")");
-        mTagManager.removeAllTagsFromProfile(profileId);
 
         updatePreference();
 
@@ -264,16 +294,12 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         if (LOG_V) Log.v(LOG_TAG, (isPinned? "Pinning " : "Unpinning ") + "Profile w/ ID " + profileId);
 
         if (isPinned) {
-            mTagManager.tagProfile(profileId, TagManager.PIN);
+            mTagManager.tagProfile(profileId, TagManager.TAG_PIN);
         } else {
-            mTagManager.removeTagFromProfile(profileId, TagManager.PIN);
+            mTagManager.removeTagFromProfile(profileId, TagManager.TAG_PIN);
         }
 
         bringProfileOnTop(profileId);
-
-        if (mContext instanceof ProfileManagerInterface.onProfilePinnedListener) {
-            ((ProfileManagerInterface.onProfilePinnedListener) mContext).onProfilePinned(profileId, isPinned);
-        }
     }
 
     private void bringProfileOnTop(int profileId) {
@@ -317,7 +343,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
     public static boolean isPinned(int profileId) {
         if (LOG_D) Log.d(LOG_TAG, "Checking if profile w/ ID " + profileId + " is pinned");
-        boolean result = TagManager.getTaggedIds(TagManager.PIN).contains(profileId);
+        boolean result = TagManager.getTaggedIds(TagManager.TAG_PIN).contains(profileId);
         if (LOG_D) Log.d(LOG_TAG, (result? "Affirmative" : "Negative") + " on is pinned check");
 
         return result;
@@ -360,6 +386,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         return nextProfileId++;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static int getMaxedId() {
         return nextProfileId - 1;
     }

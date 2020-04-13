@@ -23,9 +23,10 @@ public class BirthdayPickerDialog extends DialogFragment {
     }
 
 
+    @SuppressWarnings("WeakerAccess")
     public static BirthdayPickerDialog newInstance(DatePickerDialog.OnDateSetListener onDateSetListener, int year, int month, int day) {
         BirthdayPickerDialog datePicker =  new BirthdayPickerDialog();
-        datePicker.setOnDateSetListener(onDateSetListener);
+        datePicker.mOnDateSetListener = onDateSetListener;
 
         Bundle date = new Bundle();
         date.putInt(YEAR, year);
@@ -50,9 +51,5 @@ public class BirthdayPickerDialog extends DialogFragment {
         }
 
         return mDatePickerDialog;
-    }
-
-    public void setOnDateSetListener(DatePickerDialog.OnDateSetListener onDateSetListener) {
-        this.mOnDateSetListener = onDateSetListener;
     }
 }

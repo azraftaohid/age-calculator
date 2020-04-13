@@ -1,5 +1,6 @@
 package com.coolninja.agecalculator.utilities;
 
+@SuppressWarnings("unused")
 public enum Error {
     DEFAULT(-1),
     NOT_FOUND(420);
