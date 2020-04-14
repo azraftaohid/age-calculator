@@ -35,10 +35,6 @@ public class AddProfileDialog extends DialogFragment {
 
     private BirthdayPickerDialog mBirthdayPicker;
 
-    public interface OnProfileSubmissionListener {
-        void onSubmit(String name, Birthday dateOfBirth);
-    }
-
     public AddProfileDialog() {
 
     }
@@ -155,5 +151,9 @@ public class AddProfileDialog extends DialogFragment {
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + ": must implement OnNewProfileAddedListener");
         }
+    }
+
+    public interface OnProfileSubmissionListener {
+        void onSubmit(String name, Birthday dateOfBirth);
     }
 }

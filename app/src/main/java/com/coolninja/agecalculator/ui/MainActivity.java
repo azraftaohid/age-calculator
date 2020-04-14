@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private static final String LOG_TAG_PERFORMANCE = MainActivity.class.getSimpleName() + ".Performance";
+    private static final int DOB_REQUEST = 1111;
 
     @SuppressWarnings("FieldCanBeLocal")
     private RecyclerView mPinnedProfilesRecyclerView;
@@ -54,12 +55,9 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     private LinearLayout mOthersListView;
     private NestedScrollView mProfilesScrollView;
     private TextView mEmptyProfilesTextView;
-
     private ProfileManager mProfileManager;
     private ProfileViewsAdapter mPinnedProfileViewsAdapter;
     private ProfileViewsAdapter mOtherProfileViewsAdapter;
-
-    private static final int DOB_REQUEST = 1111;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +91,6 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         synchronizeVisibleStatus();
 
 //        showNumberOfProfiles();
-
 //        generateDummyProfiles(15);
 
         if (LOG_D) {
@@ -180,8 +177,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         if (isEmpty) {
             mProfilesScrollView.setVisibility(View.GONE);
             mEmptyProfilesTextView.setVisibility(View.VISIBLE);
-        }
-        else {
+        } else {
             mEmptyProfilesTextView.setVisibility(View.GONE);
             mProfilesScrollView.setVisibility(View.VISIBLE);
         }

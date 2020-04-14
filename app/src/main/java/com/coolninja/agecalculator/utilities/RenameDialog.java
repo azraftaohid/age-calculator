@@ -69,7 +69,8 @@ public class RenameDialog extends DialogFragment {
                     mInvalidNameInputTextView.setVisibility(View.VISIBLE);
                     if (LOG_I) Log.i(LOG_TAG, "User has left the new name field empty");
 
-                    if (LOG_V) Log.v(LOG_TAG, "Adding a text change listener to the new name field");
+                    if (LOG_V)
+                        Log.v(LOG_TAG, "Adding a text change listener to the new name field");
                     mNewNameEditText.addTextChangedListener(new TextWatcher() {
                         @Override
                         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -102,7 +103,8 @@ public class RenameDialog extends DialogFragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mUpdatable.updateName(mNewNameEditText.getText().toString());
-                    }})
+                    }
+                })
                 .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {

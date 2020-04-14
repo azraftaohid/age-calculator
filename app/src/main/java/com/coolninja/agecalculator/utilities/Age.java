@@ -5,8 +5,6 @@ import android.util.Log;
 import java.util.Calendar;
 
 public class Age {
-    private static final String LOG_TAG = Age.class.getSimpleName();
-
     public static final int MODE_YEAR_MONTH_DAY = 0;
     public static final int MODE_YEAR_DAY = 1;
     public static final int MODE_MONTH_DAY = 2;
@@ -14,7 +12,6 @@ public class Age {
     public static final int MODE_HOUR = 4;
     public static final int MODE_MINUTES = 5;
     public static final int MODE_SECONDS = 6;
-
     //Age format: {[YEAR], [MONTH], [DAY], [HOUR], [MINUTE], [SECOND]}
     public static final int YEAR = 0;
     public static final int MONTH = 1;
@@ -22,7 +19,7 @@ public class Age {
     public static final int HOUR = 3;
     public static final int MINUTE = 4;
     public static final int SECOND = 5;
-
+    private static final String LOG_TAG = Age.class.getSimpleName();
     private static final int ELEMENTS = 6;
 
     private static final long TO_DAYS_DIVISOR = 1000 * 60 * 60 * 24; //millis to seconds to minutes to hours to days
@@ -136,7 +133,7 @@ public class Age {
             return endDay - startDay;
         } else {
             int days = (startMonth.getNumberOfDays() - startDay) + endDay;
-            return days == startMonth.getNumberOfDays()? 0 : days;
+            return days == startMonth.getNumberOfDays() ? 0 : days;
         }
     }
 
@@ -145,7 +142,6 @@ public class Age {
 
         boolean isStartYearALeapYear = isLeapYear(startYear);
         boolean isEndYearALeapYear = isLeapYear(endYear);
-
 
         if (isStartYearALeapYear && (startMonth < Calendar.FEBRUARY || (startMonth == Calendar.FEBRUARY && startDay < 29))) {
             leapDays++;
@@ -179,13 +175,12 @@ public class Age {
         boolean isStartYearALeapYear = isLeapYear(startYear);
         boolean isEndYearALeapYear = isLeapYear(endYear);
 
-
         if (isStartYearALeapYear && (startMonth < Calendar.FEBRUARY || (startMonth == Calendar.FEBRUARY && startDay < 29))) {
             leapDays++;
         }
 
         if (endYear != startYear && (isEndYearALeapYear && (endMonth > Calendar.FEBRUARY || (endMonth == Calendar.FEBRUARY &&
-                        endDay == 29)))) {
+                endDay == 29)))) {
             leapDays++;
         }
 

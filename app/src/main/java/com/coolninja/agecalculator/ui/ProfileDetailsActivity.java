@@ -1,10 +1,10 @@
 package com.coolninja.agecalculator.ui;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Age;

@@ -45,7 +45,7 @@ public class AgeTest {
     public void checkDurationCalculator() {
         long year1 = Age.calculateDuration(2019, 3, 28, 2020, 3, 28, Age.MODE_YEAR_MONTH_DAY)[Age.YEAR];
 
-        assertThat(year1, is(equalTo((long)1)));
+        assertThat(year1, is(equalTo((long) 1)));
     }
 
     @Test

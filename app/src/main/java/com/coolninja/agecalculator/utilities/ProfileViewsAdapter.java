@@ -30,11 +30,11 @@ import java.util.Calendar;
 import java.util.Locale;
 
 import static com.coolninja.agecalculator.ui.MainActivity.EXTRA_PROFILE_ID;
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
 import static com.coolninja.agecalculator.utilities.Age.DAY;
 import static com.coolninja.agecalculator.utilities.Age.MONTH;
 import static com.coolninja.agecalculator.utilities.Age.YEAR;
-import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
-import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
 
 public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapter.ProfileViewHolder> implements
         ProfileManagerInterface.onProfileUpdatedListener {
@@ -60,6 +60,80 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
         mProfiles = profiles;
 
         mAdapterNumber = adapterCount++;
+    }
+
+    @NonNull
+    @Override
+    public ProfileViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = mInflater.inflate(R.layout.profile_view, parent, false);
+
+        return new ProfileViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ProfileViewHolder holder, int position) {
+        if (LOG_V) Log.i(LOG_TAG, "Binding profile view with adapter, position: " + position);
+        Profile profile = mProfiles.get(position);
+        holder.mProfileView.setName(profile.getName());
+
+        long[] age = profile.getAge().get(Age.MODE_YEAR_MONTH_DAY);
+        holder.mProfileView.setSubtitle(String.format(Locale.ENGLISH, mContext.getString(R.string.display_years_months_days),
+                age[YEAR], age[MONTH], age[DAY]));
+    }
+
+    @Override
+    public int getItemCount() {
+        int size = mProfiles.size();
+        if (LOG_V) Log.v(LOG_TAG, "Total items in profile views adapter: " + size);
+        return size;
+    }
+
+    public void addProfile(Profile profile) {
+        if (LOG_V)
+            Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " to adapter " + mAdapterNumber);
+
+        mProfiles.add(profile);
+        this.notifyItemInserted(getItemCount() - 1);
+    }
+
+    public void addProfile(int position, Profile profile) {
+        if (LOG_V)
+            Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " at position " + position + " to adapter " + mAdapterNumber);
+
+        mProfiles.add(position, profile);
+        this.notifyItemInserted(position);
+    }
+
+    @Override
+    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+        notifyItemChanged(getProfilePosition(profileId));
+    }
+
+    @Override
+    public void onProfileNameUpdated(int profileId, String newName, String previousName) {
+        notifyItemChanged(getProfilePosition(profileId));
+    }
+
+    public void removeProfile(int profileId) {
+        if (LOG_V)
+            Log.v(LOG_TAG, "Removing profile w/ ID " + profileId + " from adapter " + mAdapterNumber);
+
+        int position = getProfilePosition(profileId);
+        if (LOG_V) Log.v(LOG_TAG, "Removing profile view at position: " + position);
+        mProfiles.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    private int getProfilePosition(int profileId) {
+        int size = getItemCount();
+        for (int i = 0; i < size; i++) {
+            if (mProfiles.get(i).getId() == profileId) {
+                return i;
+            }
+        }
+
+        Log.e(LOG_TAG, "No profile w/ ID " + profileId + " exists in adapter " + mAdapterNumber);
+        return Error.NOT_FOUND;
     }
 
     class ProfileViewHolder extends RecyclerView.ViewHolder {
@@ -115,8 +189,10 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
 
             ArrayList<PopupMenuItem> popupMenuItems = new ArrayList<>();
 
-            if (ProfileManager.isPinned(profileId)) popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_unpin, mContext.getString(R.string.unpin)));
-            else popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_pin, mContext.getString(R.string.pin)));
+            if (ProfileManager.isPinned(profileId))
+                popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_unpin, mContext.getString(R.string.unpin)));
+            else
+                popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_pin, mContext.getString(R.string.pin)));
             popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_rename, mContext.getString(R.string.rename)));
             popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_change_dob, mContext.getString(R.string.change_date_of_birth)));
             popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_delete, mContext.getString(R.string.delete)));
@@ -157,77 +233,6 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
             imageView.setLongClickable(true);
             return imageView;
         }
-    }
-
-    @NonNull
-    @Override
-    public ProfileViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.profile_view, parent, false);
-
-        return new ProfileViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ProfileViewHolder holder, int position) {
-        if (LOG_V) Log.i(LOG_TAG, "Binding profile view with adapter, position: " + position);
-        Profile profile = mProfiles.get(position);
-        holder.mProfileView.setName(profile.getName());
-
-        long[] age = profile.getAge().get(Age.MODE_YEAR_MONTH_DAY);
-        holder.mProfileView.setSubtitle(String.format(Locale.ENGLISH, mContext.getString(R.string.display_years_months_days),
-                age[YEAR], age[MONTH], age[DAY]));
-    }
-
-    @Override
-    public int getItemCount() {
-        int size = mProfiles.size();
-        if (LOG_V) Log.v(LOG_TAG, "Total items in profile views adapter: " + size);
-        return size;
-    }
-
-    public void addProfile(Profile profile) {
-        if (LOG_V) Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " to adapter " + mAdapterNumber);
-
-        mProfiles.add(profile);
-        this.notifyItemInserted(getItemCount() - 1);
-    }
-
-    public void addProfile(int position, Profile profile) {
-        if (LOG_V) Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " at position " + position + " to adapter " + mAdapterNumber);
-
-        mProfiles.add(position, profile);
-        this.notifyItemInserted(position);
-    }
-
-    @Override
-    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
-        notifyItemChanged(getProfilePosition(profileId));
-    }
-
-    @Override
-    public void onProfileNameUpdated(int profileId, String newName, String previousName) {
-        notifyItemChanged(getProfilePosition(profileId));
-    }
-
-    public void removeProfile(int profileId) {
-        if (LOG_V) Log.v(LOG_TAG, "Removing profile w/ ID " + profileId + " from adapter " + mAdapterNumber);
-
-        int position = getProfilePosition(profileId);
-        if (LOG_V) Log.v(LOG_TAG, "Removing profile view at position: " + position);
-        mProfiles.remove(position);
-        notifyItemRemoved(position);
-    }
-
-    private int getProfilePosition(int profileId) {
-        int size = getItemCount();
-        for (int i = 0; i < size; i++) {
-            if (mProfiles.get(i).getId() == profileId) {
-                return i;
-            }
-        }
-
-        Log.e(LOG_TAG, "No profile w/ ID " + profileId + " exists in adapter " + mAdapterNumber);
-        return Error.NOT_FOUND;
     }
 
 }

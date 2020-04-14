@@ -32,32 +32,24 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:divider="@drawable/ms_row_divider"
+            android:dividerPadding="4dp"
             android:orientation="vertical"
+            android:showDividers="middle"
             android:visibility="visible">
 
             <LinearLayout
                 android:id="@+id/ll_pinned"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                style="@style/profile_list_container">
 
                 <TextView
                     android:id="@+id/tv_pinned_profiles"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
                     android:text="@string/pinned"
-                    android:textAppearance="@style/TextAppearance.UIFabric.ListItemSubtitle"
-                    android:visibility="visible" />
+                    style="@style/profile_list_title" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_pinned_profiles"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:visibility="visible">
+                    style="@style/profiles_container">
 
                 </androidx.recyclerview.widget.RecyclerView>
 
@@ -65,27 +57,16 @@
 
             <LinearLayout
                 android:id="@+id/ll_others"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                style="@style/profile_list_container">
 
                 <TextView
                     android:id="@+id/tv_other_profiles"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginTop="16dp"
                     android:text="@string/other_profiles"
-                    android:textAppearance="@style/TextAppearance.UIFabric.ListItemSubtitle"
-                    android:visibility="visible" />
+                    style="@style/profile_list_title"/>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rv_other_profiles"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:visibility="visible">
+                    style="@style/profiles_container">
 
                 </androidx.recyclerview.widget.RecyclerView>
 
@@ -99,8 +80,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:backgroundTint="@color/colorAccent"
+        android:layout_marginBottom="24dp"
         android:clickable="true"
         android:focusable="true"
         android:onClick="showAddProfileDialog"

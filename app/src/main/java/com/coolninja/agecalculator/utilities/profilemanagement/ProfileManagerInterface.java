@@ -9,6 +9,7 @@ public class ProfileManagerInterface {
 
     public interface onProfileUpdatedListener {
         void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay);
+
         void onProfileNameUpdated(int profileId, String newName, String previousName);
     }
 
@@ -23,10 +24,15 @@ public class ProfileManagerInterface {
     @SuppressWarnings("unused")
     public interface updatable {
         String getName();
+
         Birthday getBirthday();
+
         void updateName(String newName);
+
         void updateBirthday(int newBirthYear, int newBirthMonth, int newBirthDay);
+
         String getPreviousName();
+
         Birthday getPreviousBirthday();
     }
 }

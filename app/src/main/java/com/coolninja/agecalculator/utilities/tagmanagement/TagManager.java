@@ -17,15 +17,12 @@ import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_W;
 
 public class TagManager {
+    public static final int TAG_PIN = 0;
     private static final String LOG_TAG = TagManager.class.getSimpleName();
     @SuppressWarnings("unused")
     private static final String LOG_TAG_PERFORMANCE = TagManager.class.getSimpleName() + ".Performance";
-
     private static final String PREF_KEY = "com.coolninja.agecalculator.pref.TAGMANAGER";
     private static final String TAGS_KEY = "com.coolninja.agecalculator.pref.TAGMANAGER.TAGS";
-
-    public static final int TAG_PIN = 0;
-
     private Context mContext;
     private JSONArray mTaggedProfilesJson = new JSONArray();
     private SharedPreferences mPref;
@@ -46,7 +43,8 @@ public class TagManager {
         if (pref.contains(TAGS_KEY)) {
             try {
                 tagManager.mTaggedProfilesJson = new JSONArray(pref.getString(TAGS_KEY, ""));
-                if (LOG_D) Log.d(LOG_TAG, "Found tag record: " + tagManager.mTaggedProfilesJson.toString(4));
+                if (LOG_D)
+                    Log.d(LOG_TAG, "Found tag record: " + tagManager.mTaggedProfilesJson.toString(4));
 
                 for (int i = 0; i < tagManager.mTaggedProfilesJson.length(); i++) {
                     JSONObject object = tagManager.mTaggedProfilesJson.getJSONObject(i);
@@ -78,6 +76,10 @@ public class TagManager {
         return tagManager;
     }
 
+    public static ArrayList<Integer> getTaggedIds(int whichTag) {
+        return Tag.values()[whichTag].getProfileIds();
+    }
+
     public void tagProfile(int profileId, int what) {
         if (LOG_V) Log.v(LOG_TAG, "Tagging profile w/ ID " + profileId);
 
@@ -106,10 +108,12 @@ public class TagManager {
 
     public void removeTagFromProfile(int profileId, int whichTag) {
         Tag tag = Tag.values()[whichTag];
-        if (LOG_V) Log.v(LOG_TAG, "Removing " + tag.getSimpleName() + " tag from profile w/ ID " + profileId);
+        if (LOG_V)
+            Log.v(LOG_TAG, "Removing " + tag.getSimpleName() + " tag from profile w/ ID " + profileId);
 
         if (!tag.getProfileIds().contains(profileId)) {
-            if (LOG_W) Log.w(LOG_TAG, "Profile w/ ID " + profileId + " wasn't tagged with " + tag.getSimpleName());
+            if (LOG_W)
+                Log.w(LOG_TAG, "Profile w/ ID " + profileId + " wasn't tagged with " + tag.getSimpleName());
             return;
         }
 
@@ -140,7 +144,8 @@ public class TagManager {
             try {
                 if (jsonArray.getInt(i) == profileId) {
                     jsonArray.remove(i);
-                    if (LOG_V) Log.v(LOG_TAG, "Removed profile w/ ID " + profileId + " from the tagged profiles json array");
+                    if (LOG_V)
+                        Log.v(LOG_TAG, "Removed profile w/ ID " + profileId + " from the tagged profiles json array");
                     break;
                 }
             } catch (JSONException e) {
@@ -165,10 +170,6 @@ public class TagManager {
         SharedPreferences.Editor editor = mPref.edit();
         editor.putString(TAGS_KEY, mTaggedProfilesJson.toString());
         editor.apply();
-    }
-
-    public static ArrayList<Integer> getTaggedIds(int whichTag) {
-        return Tag.values()[whichTag].getProfileIds();
     }
 
 }

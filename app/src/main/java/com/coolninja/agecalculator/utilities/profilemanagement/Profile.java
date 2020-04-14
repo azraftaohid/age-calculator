@@ -3,22 +3,20 @@ package com.coolninja.agecalculator.utilities.profilemanagement;
 import android.util.Log;
 
 import com.coolninja.agecalculator.ui.MainActivity;
-import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.Age;
+import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.codes.Error;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Profile implements ProfileManagerInterface.updatable {
-    private static final String LOG_TAG = Profile.class.getSimpleName();
-
     static final String ID = "profile.id";
     static final String NAME = "profile.name";
     static final String BIRTH_YEAR = "profile.dob.year";
     static final String BIRTH_MONTH = "profile.dob.month";
     static final String BIRTH_DAY = "profile.dob.day";
-
+    private static final String LOG_TAG = Profile.class.getSimpleName();
     @SuppressWarnings("UnusedAssignment")
     private int mId = Error.NOT_FOUND; //Precaution step; in case constructor did not set id
     private Birthday mDateOfBirth;
@@ -59,7 +57,8 @@ public class Profile implements ProfileManagerInterface.updatable {
 
     @Override
     public void updateBirthday(int year, int month, int day) {
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Setting a new date of birth for profile w/ ID " + mId);
+        if (MainActivity.LOG_V)
+            Log.v(LOG_TAG, "Setting a new date of birth for profile w/ ID " + mId);
 
         mPrevDateOfBirth = new Birthday(mDateOfBirth.get(Birthday.YEAR), mDateOfBirth.get(Birthday.MONTH), mDateOfBirth.get(Birthday.YEAR));
 
@@ -68,10 +67,6 @@ public class Profile implements ProfileManagerInterface.updatable {
         mDateOfBirth.set(Birthday.DAY, day);
 
         mOnProfileUpdateListener.onProfileDateOfBirthUpdated(mId, year, month, day, mPrevDateOfBirth);
-    }
-
-    void setId(int id) {
-        mId = id;
     }
 
     @Override
@@ -98,6 +93,10 @@ public class Profile implements ProfileManagerInterface.updatable {
         return mId;
     }
 
+    void setId(int id) {
+        mId = id;
+    }
+
     public Age getAge() {
         return new Age(mDateOfBirth);
     }
@@ -109,12 +108,14 @@ public class Profile implements ProfileManagerInterface.updatable {
         } catch (JSONException e) {
             Log.wtf(LOG_TAG, "Couldn't put ID in the json object for profile w/ ID: " + mId);
             e.printStackTrace();
-        } try {
+        }
+        try {
             object.put(NAME, mName);
         } catch (JSONException e) {
             Log.wtf(LOG_TAG, "Couldn't put Name in the json object for profile w/ ID: " + mId);
             e.printStackTrace();
-        } try {
+        }
+        try {
             object.put(BIRTH_YEAR, mDateOfBirth.get(Birthday.YEAR));
             object.put(BIRTH_MONTH, mDateOfBirth.get(Birthday.MONTH));
             object.put(BIRTH_DAY, mDateOfBirth.get(Birthday.DAY));

@@ -1,7 +1,5 @@
 package com.coolninja.agecalculator.ui;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,8 +7,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.coolninja.agecalculator.utilities.AddProfileDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.coolninja.agecalculator.R;
+import com.coolninja.agecalculator.utilities.AddProfileDialog;
 import com.coolninja.agecalculator.utilities.Birthday;
 
 public class WelcomeActivity extends AppCompatActivity implements AddProfileDialog.OnProfileSubmissionListener {
@@ -54,13 +54,16 @@ public class WelcomeActivity extends AppCompatActivity implements AddProfileDial
         if (MainActivity.LOG_V) Log.v(LOG_TAG, "Putting " + mName + " name to the return intent");
         returnIntent.putExtra(MainActivity.EXTRA_NAME, mName);
 
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.YEAR) + " name to the return intent");
+        if (MainActivity.LOG_V)
+            Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.YEAR) + " name to the return intent");
         returnIntent.putExtra(MainActivity.EXTRA_YEAR, mDob.get(Birthday.YEAR));
 
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.MONTH) + " name to the return intent");
+        if (MainActivity.LOG_V)
+            Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.MONTH) + " name to the return intent");
         returnIntent.putExtra(MainActivity.EXTRA_MONTH, mDob.get(Birthday.MONTH));
 
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.DAY) + " name to the return intent");
+        if (MainActivity.LOG_V)
+            Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.DAY) + " name to the return intent");
         returnIntent.putExtra(MainActivity.EXTRA_DAY, mDob.get(Birthday.DAY));
 
         setResult(RESULT_OK, returnIntent);

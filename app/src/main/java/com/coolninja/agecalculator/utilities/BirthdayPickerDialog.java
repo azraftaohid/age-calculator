@@ -25,7 +25,7 @@ public class BirthdayPickerDialog extends DialogFragment {
 
     @SuppressWarnings("WeakerAccess")
     public static BirthdayPickerDialog newInstance(DatePickerDialog.OnDateSetListener onDateSetListener, int year, int month, int day) {
-        BirthdayPickerDialog datePicker =  new BirthdayPickerDialog();
+        BirthdayPickerDialog datePicker = new BirthdayPickerDialog();
         datePicker.mOnDateSetListener = onDateSetListener;
 
         Bundle date = new Bundle();

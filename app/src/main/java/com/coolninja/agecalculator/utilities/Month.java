@@ -16,10 +16,9 @@ public enum Month {
     NOVEMBER("Nov", 30),
     DECEMBER("Dec", 31);
 
+    private final String LOG_TAG = getClass().getSimpleName();
     private String mShortName;
     private int mNumberOfDays;
-
-    private final String LOG_TAG = getClass().getSimpleName();
 
     Month(String shortName, int numberOfDays) {
         mShortName = shortName;

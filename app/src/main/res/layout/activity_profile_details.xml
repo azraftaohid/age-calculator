@@ -11,7 +11,7 @@
         android:id="@+id/pv_subjected_profile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         app:avatarSize="xxlarge"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -19,132 +19,69 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
         android:divider="@drawable/ms_row_divider"
         android:dividerPadding="4dp"
-        android:orientation="vertical"
         android:showDividers="middle"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/pv_subjected_profile">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="4dp"
-            android:dividerPadding="4dp"
-            android:orientation="vertical"
-            android:showDividers="end">
+        <LinearLayout style="@style/details_section_container">
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:text="@string/date_of_birth"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+                style="@style/details_section_title" />
 
             <TextView
                 android:id="@+id/tv_dob"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:textAppearance="@style/TextAppearance.UIFabric.Body1" />
+                style="@style/details_section_property" />
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="4dp"
-            android:dividerPadding="4dp"
-            android:orientation="vertical"
-            android:showDividers="end">
+        <LinearLayout style="@style/details_section_container">
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:text="@string/next_birth_day_in"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+                style="@style/details_section_title" />
 
             <TextView
                 android:id="@+id/tv_next_birthday_in"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:textAppearance="@style/TextAppearance.UIFabric.Body1" />
+                style="@style/details_section_property" />
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="4dp"
-            android:dividerPadding="4dp"
-            android:orientation="vertical"
-            android:showDividers="end">
+        <LinearLayout style="@style/details_section_container">
 
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:text="@string/current_age_title"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+                style="@style/details_section_title" />
 
             <TextView
                 android:id="@+id/tv_age_year_month_days"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:textAppearance="@style/TextAppearance.UIFabric.Body1" />
+                style="@style/details_section_property" />
 
             <TextView
                 android:id="@+id/tv_age_year_days"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textAppearance="@style/TextAppearance.UIFabric.Body1" />
+                style="@style/details_section_property" />
 
             <TextView
                 android:id="@+id/tv_age_month_days"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textAppearance="@style/TextAppearance.UIFabric.Body1" />
+                style="@style/details_section_property" />
 
             <TextView
                 android:id="@+id/tv_age_days"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textAppearance="@style/TextAppearance.UIFabric.Body1" />
+                style="@style/details_section_property" />
 
             <TextView
                 android:id="@+id/tv_age_hours"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textAppearance="@style/TextAppearance.UIFabric.Body1" />
+                style="@style/details_section_property" />
 
             <TextView
                 android:id="@+id/tv_age_minutes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textAppearance="@style/TextAppearance.UIFabric.Body1" />
+                style="@style/details_section_property" />
 
             <TextView
                 android:id="@+id/tv_age_seconds"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textAppearance="@style/TextAppearance.UIFabric.Body1" />
+                style="@style/details_section_property" />
         </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
