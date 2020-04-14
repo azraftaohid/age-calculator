@@ -22,7 +22,10 @@ public class Age {
     private static final String LOG_TAG = Age.class.getSimpleName();
     private static final int ELEMENTS = 6;
 
-    private static final long TO_DAYS_DIVISOR = 1000 * 60 * 60 * 24; //millis to seconds to minutes to hours to days
+    //Base value must be in seconds
+    private static final long TO_MINUTES_DIVISOR = 60; //Seconds to minutes
+    private static final long TO_HOURS_DIVISOR = TO_MINUTES_DIVISOR * 60;
+    private static final long TO_DAYS_DIVISOR = TO_HOURS_DIVISOR * 24;
     private static final long TO_YEARS_DIVISOR = TO_DAYS_DIVISOR * 365; //365 is important and can not be 366
 
     private int mBirthYear;
@@ -45,17 +48,14 @@ public class Age {
         long[] duration = new long[ELEMENTS];
 
         Calendar endDate = Calendar.getInstance();
-        endDate.set(Calendar.YEAR, endYear);
-        endDate.set(Calendar.MONTH, endMonth);
-        endDate.set(Calendar.DAY_OF_MONTH, endDay);
+        endDate.set(endYear, endMonth, endDay);
 
         Calendar startDate = Calendar.getInstance();
-        startDate.set(Calendar.YEAR, startYear);
-        startDate.set(Calendar.MONTH, startMonth);
-        startDate.set(Calendar.DAY_OF_MONTH, startDay);
+        startDate.set(startYear, startMonth, startDay, 0, 0, 0);
+        startDate.set(Calendar.MILLISECOND, 0);
 
-        long durationInMillis = endDate.getTimeInMillis() - startDate.getTimeInMillis();
-        int durationInDays = Long.valueOf(durationInMillis / TO_DAYS_DIVISOR).intValue();
+        long durationInSeconds = (endDate.getTimeInMillis() - startDate.getTimeInMillis()) / 1000;
+        int durationInDays = Long.valueOf(durationInSeconds / TO_DAYS_DIVISOR).intValue();
 
         if (returnMode == MODE_YEAR_MONTH_DAY || returnMode == MODE_YEAR_DAY || returnMode == MODE_MONTH_DAY) {
             int remainderDaysAfterYear = durationInDays % 365 - getNumberOfLeapDays(startYear, startMonth, startDay, endYear, endMonth, endDay);
@@ -67,7 +67,7 @@ public class Age {
             int remainderDaysAfterMonth = getDurationInRemainderDaysAfterMonth(Month.values()[startMonth], startDay, endDay);
             int remainderMonthsAfterYear = getDurationInRemainderMonthsAfterYear(startMonth, endMonth,
                     startDay > endDay);
-            int durationInYears = Double.valueOf(Math.floor((float) durationInMillis / TO_YEARS_DIVISOR)).intValue();
+            int durationInYears = Double.valueOf(Math.floor((float) durationInSeconds / TO_YEARS_DIVISOR)).intValue();
 
             if (remainderDaysAfterYear < 0) {
                 durationInYears--;
@@ -95,13 +95,13 @@ public class Age {
             duration[DAY] = durationInDays;
             return duration;
         } else if (returnMode == MODE_HOUR) {
-            duration[HOUR] = durationInDays * 24;
+            duration[HOUR] = durationInSeconds / TO_HOURS_DIVISOR;
             return duration;
         } else if (returnMode == MODE_MINUTES) {
-            duration[MINUTE] = durationInDays * 24 * 60;
+            duration[MINUTE] = durationInSeconds / TO_MINUTES_DIVISOR;
             return duration;
         } else if (returnMode == MODE_SECONDS) {
-            duration[SECOND] = durationInDays * 24 * 60 * 60;
+            duration[SECOND] = durationInSeconds;
             return duration;
         } else {
             Log.w(LOG_TAG, "Unsupported mode passed: " + returnMode);
@@ -202,14 +202,11 @@ public class Age {
         Calendar c = Calendar.getInstance();
 
         if (c.get(Calendar.MONTH) < mBirthMonth || (c.get(Calendar.MONTH) == mBirthMonth && c.get(Calendar.DAY_OF_MONTH) < mBirthDay)) {
-            //birthday - today
+            //birth date - today
             return calculateDuration(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.YEAR), mBirthMonth, mBirthDay, mode);
-        } else if (c.get(Calendar.MONTH) > mBirthMonth || c.get(Calendar.DAY_OF_MONTH) > mBirthDay) {
-            //today - birthday
-            return calculateDuration(c.get(Calendar.YEAR), mBirthMonth, mBirthDay, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), mode);
-        } else { //today == birthday
-            //next year today - birthday
-            return calculateDuration(c.get(Calendar.YEAR), mBirthMonth, mBirthDay, c.get(Calendar.YEAR) + 1, c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), mode);
+        } else {
+            // birth date in next year - today
+            return calculateDuration(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.YEAR) + 1, mBirthMonth, mBirthDay, mode);
         }
 
     }

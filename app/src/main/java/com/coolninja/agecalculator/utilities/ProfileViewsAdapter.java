@@ -88,6 +88,16 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
         return size;
     }
 
+    @Override
+    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+        notifyItemChanged(getProfilePosition(profileId));
+    }
+
+    @Override
+    public void onProfileNameUpdated(int profileId, String newName, String previousName) {
+        notifyItemChanged(getProfilePosition(profileId));
+    }
+
     public void addProfile(Profile profile) {
         if (LOG_V)
             Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " to adapter " + mAdapterNumber);
@@ -104,16 +114,6 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
         this.notifyItemInserted(position);
     }
 
-    @Override
-    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
-        notifyItemChanged(getProfilePosition(profileId));
-    }
-
-    @Override
-    public void onProfileNameUpdated(int profileId, String newName, String previousName) {
-        notifyItemChanged(getProfilePosition(profileId));
-    }
-
     public void removeProfile(int profileId) {
         if (LOG_V)
             Log.v(LOG_TAG, "Removing profile w/ ID " + profileId + " from adapter " + mAdapterNumber);
@@ -122,6 +122,10 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
         if (LOG_V) Log.v(LOG_TAG, "Removing profile view at position: " + position);
         mProfiles.remove(position);
         notifyItemRemoved(position);
+    }
+
+    public void refresh() {
+        notifyItemRangeChanged(0, mProfiles.size());
     }
 
     private int getProfilePosition(int profileId) {

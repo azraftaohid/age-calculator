@@ -3,15 +3,19 @@ package com.coolninja.agecalculator.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.AddProfileDialog;
@@ -58,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     private ProfileManager mProfileManager;
     private ProfileViewsAdapter mPinnedProfileViewsAdapter;
     private ProfileViewsAdapter mOtherProfileViewsAdapter;
+    private SwipeRefreshLayout mRefreshProfilesLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         mOtherProfilesRecyclerView = findViewById(R.id.rv_other_profiles);
         mProfilesScrollView = findViewById(R.id.sv_profiles);
         mEmptyProfilesTextView = findViewById(R.id.tv_empty_profiles);
+        mRefreshProfilesLayout = findViewById(R.id.srl_refresh_profiles);
 
         mProfileManager = ProfileManager.getProfileManager(this);
 
@@ -90,6 +96,13 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
         synchronizeVisibleStatus();
 
+        mRefreshProfilesLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refreshProfiles();
+            }
+        });
+
 //        showNumberOfProfiles();
 //        generateDummyProfiles(15);
 
@@ -98,6 +111,24 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
                     + " milliseconds to show " + MainActivity.class.getSimpleName());
         }
 
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.menu_refresh) {
+            mRefreshProfilesLayout.setRefreshing(true);
+            refreshProfiles();
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     void launchWelcomeActivity() {
@@ -253,5 +284,12 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         }
 
         synchronizeVisibleStatus();
+    }
+
+    private void refreshProfiles() {
+        mPinnedProfileViewsAdapter.refresh();
+        mOtherProfileViewsAdapter.refresh();
+
+        mRefreshProfilesLayout.setRefreshing(false);
     }
 }

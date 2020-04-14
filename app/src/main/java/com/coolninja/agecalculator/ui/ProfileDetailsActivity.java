@@ -5,6 +5,7 @@ import android.util.Log;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Age;
@@ -17,9 +18,13 @@ import com.microsoft.officeuifabric.persona.PersonaView;
 import java.util.Calendar;
 import java.util.Locale;
 
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_W;
+
 public class ProfileDetailsActivity extends AppCompatActivity {
     private final static String LOG_TAG = ProfileDetailsActivity.class.getSimpleName();
 
+    private ProfileManager mProfileManager;
     private PersonaView mProfileView;
     private TextView mDobTextView;
     private TextView mNextBirthdayInTextView;
@@ -30,6 +35,9 @@ public class ProfileDetailsActivity extends AppCompatActivity {
     private TextView mAgeInHoursTextView;
     private TextView mAgeInMinutesTextView;
     private TextView mAgeInSecondsTextView;
+    private SwipeRefreshLayout mRefreshLayout;
+
+    private Thread mDisplayDetailsThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +57,7 @@ public class ProfileDetailsActivity extends AppCompatActivity {
         mAgeInHoursTextView = findViewById(R.id.tv_age_hours);
         mAgeInMinutesTextView = findViewById(R.id.tv_age_minutes);
         mAgeInSecondsTextView = findViewById(R.id.tv_age_seconds);
+        mRefreshLayout = findViewById(R.id.srl_refresh_details);
 
         final int profileId = getIntent().getIntExtra(MainActivity.EXTRA_PROFILE_ID, Error.NOT_FOUND);
 
@@ -58,10 +67,19 @@ public class ProfileDetailsActivity extends AppCompatActivity {
             throw new AssertionError("Profile ID is an error code");
         }
 
-        new Thread(new Runnable() {
+        mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh();
+            }
+        });
+
+        mDisplayDetailsThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                final Profile profile = ProfileManager.getProfileManager(ProfileDetailsActivity.this).getProfileById(profileId);
+                if (mProfileManager == null) mProfileManager = ProfileManager.getProfileManager(ProfileDetailsActivity.this);
+
+                final Profile profile = mProfileManager.getProfileById(profileId);
                 final Birthday birthday = profile.getBirthday();
                 Age age = profile.getAge();
 
@@ -98,11 +116,26 @@ public class ProfileDetailsActivity extends AppCompatActivity {
                 });
 
             }
-        }).start();
+        });
+
+        mDisplayDetailsThread.start();
 
         if (MainActivity.LOG_D) {
             Log.d(LOG_TAG, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
                     + " milliseconds to show " + ProfileDetailsActivity.class.getSimpleName());
         }
+    }
+
+    private void refresh() {
+        if (LOG_V) Log.v(LOG_TAG, "Refreshing profile details");
+
+        if (mDisplayDetailsThread.isAlive()) {
+            if (LOG_W) Log.w(LOG_TAG, "Thread display details is already running");
+            return;
+        }
+
+        //noinspection CallToThreadRun
+        mDisplayDetailsThread.run(); //No need to start a new thread now, besides, it is illegal to start a thread more than twice
+        mRefreshLayout.setRefreshing(false);
     }
 }
