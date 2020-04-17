@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -25,37 +26,40 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.Objects;
 
-public class AddProfileDialog extends DialogFragment {
-    private OnProfileSubmissionListener mOnNewProfileAdded;
+public class ProfileInfoDialog extends DialogFragment {
+    private OnProfileInfoSubmitListener mOnNewProfileAdded;
 
     private EditText mDobEditText;
     private EditText mNameEditText;
     private String mEnteredName;
     private String mEnteredDateOfBirth;
 
+    private int mRequestCode;
+
     private BirthdayPickerDialog mBirthdayPicker;
 
-    public AddProfileDialog() {
+    public ProfileInfoDialog() {
 
     }
 
-    public static AddProfileDialog newInstance() {
-        final AddProfileDialog addProfileDialog = new AddProfileDialog();
+    public static ProfileInfoDialog newInstance(int requestCode) {
+        final ProfileInfoDialog profileInfoDialog = new ProfileInfoDialog();
 
+        profileInfoDialog.mRequestCode = requestCode;
         Calendar c = Calendar.getInstance();
         BirthdayPickerDialog birthdayPickerDialog = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                addProfileDialog.mDobEditText.setText(String.format(Locale.ENGLISH,
-                        Objects.requireNonNull(addProfileDialog.getActivity()).getString(R.string.short_date_format),
+                profileInfoDialog.mDobEditText.setText(String.format(Locale.ENGLISH,
+                        Objects.requireNonNull(profileInfoDialog.getActivity()).getString(R.string.short_date_format),
                         month + 1, dayOfMonth, year));
-                addProfileDialog.mDobEditText.setSelection(addProfileDialog.mDobEditText.length());
+                profileInfoDialog.mDobEditText.setSelection(profileInfoDialog.mDobEditText.length());
             }
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
 
-        addProfileDialog.setBirthdayPicker(birthdayPickerDialog);
+        profileInfoDialog.setBirthdayPicker(birthdayPickerDialog);
 
-        return addProfileDialog;
+        return profileInfoDialog;
     }
 
     @NonNull
@@ -68,11 +72,13 @@ public class AddProfileDialog extends DialogFragment {
         mDobEditText = root.findViewById(R.id.et_dob_new_profile);
         mNameEditText = root.findViewById(R.id.et_name_new_profile);
         final TextView errorMessageTextView = root.findViewById(R.id.tv_invalid_name_input);
+        ImageView datePickerImageView = root.findViewById(R.id.iv_date_picker);
+
 
         if (mEnteredName != null) mNameEditText.setText(mEnteredName);
         if (mEnteredDateOfBirth != null) mDobEditText.setText(mEnteredDateOfBirth);
 
-        mDobEditText.setOnClickListener(new View.OnClickListener() {
+        datePickerImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showBirthdayPicker();
@@ -120,13 +126,13 @@ public class AddProfileDialog extends DialogFragment {
                         int year = Integer.parseInt(mmddyyyy[2]);
 
                         Birthday birthday = new Birthday(year, month, day);
-                        mOnNewProfileAdded.onSubmit(mEnteredName, birthday);
+                        mOnNewProfileAdded.onProfileInfoSubmit(mRequestCode, mEnteredName, birthday);
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Objects.requireNonNull(AddProfileDialog.this.getDialog()).cancel();
+                        Objects.requireNonNull(ProfileInfoDialog.this.getDialog()).cancel();
                     }
                 });
 
@@ -147,13 +153,13 @@ public class AddProfileDialog extends DialogFragment {
         super.onAttach(context);
 
         try {
-            mOnNewProfileAdded = (OnProfileSubmissionListener) context;
+            mOnNewProfileAdded = (OnProfileInfoSubmitListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString() + ": must implement OnNewProfileAddedListener");
         }
     }
 
-    public interface OnProfileSubmissionListener {
-        void onSubmit(String name, Birthday dateOfBirth);
+    public interface OnProfileInfoSubmitListener {
+        void onProfileInfoSubmit(int requestCode, String name, Birthday dateOfBirth);
     }
 }

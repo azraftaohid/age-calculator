@@ -10,6 +10,8 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -49,7 +51,7 @@ public class RenameDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        if (LOG_V) Log.v(LOG_TAG, "Displaying rename dialog");
+        if (LOG_V) Log.v(LOG_TAG, "Creating rename dialog");
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
@@ -95,8 +97,6 @@ public class RenameDialog extends DialogFragment {
             }
         });
 
-        mNewNameEditText.setShowSoftInputOnFocus(true);
-        mNewNameEditText.requestFocus();
 
         builder.setView(root)
                 .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
@@ -112,6 +112,14 @@ public class RenameDialog extends DialogFragment {
                     }
                 });
 
-        return builder.create();
+        Dialog dialog = builder.create();
+
+        Window window = dialog.getWindow();
+        if (window != null)
+            CommonUtilities.showSoftKeyboard(window, mNewNameEditText);
+        else Log.e(LOG_TAG, "Couldn't get dialog window");
+
+        return dialog;
     }
+
 }

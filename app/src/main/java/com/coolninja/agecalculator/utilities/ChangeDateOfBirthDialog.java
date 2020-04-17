@@ -9,8 +9,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -62,15 +64,14 @@ public class ChangeDateOfBirthDialog extends DialogFragment {
         @SuppressLint("InflateParams") View root = inflater.inflate(R.layout.dialog_change_dob, null);
 
         mNewDobEditText = root.findViewById(R.id.et_new_date_of_birth);
-        mNewDobEditText.setOnClickListener(new View.OnClickListener() {
+        ImageView dobPickerImageView = root.findViewById(R.id.iv_new_dob_picker);
+
+        dobPickerImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mBirthdayPicker.show(requireActivity().getSupportFragmentManager(), getString(R.string.birthday_picker_tag));
             }
         });
-
-        mNewDobEditText.setShowSoftInputOnFocus(true);
-        mNewDobEditText.requestFocus();
 
         builder.setView(root)
                 .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
@@ -92,6 +93,13 @@ public class ChangeDateOfBirthDialog extends DialogFragment {
                     }
                 });
 
-        return builder.create();
+        Dialog dialog = builder.create();
+
+        Window window = dialog.getWindow();
+        if (window != null)
+            CommonUtilities.showSoftKeyboard(window, mNewDobEditText);
+        else Log.e(LOG_TAG, "Couldn't get dialog window");
+
+        return dialog;
     }
 }

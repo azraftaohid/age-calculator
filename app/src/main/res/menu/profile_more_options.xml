@@ -2,6 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/popup_menu_header"
+        android:title="@string/unspecified" />
+    <item
         android:id="@+id/popup_menu_pin"
         android:title="@string/pin" />
     <item

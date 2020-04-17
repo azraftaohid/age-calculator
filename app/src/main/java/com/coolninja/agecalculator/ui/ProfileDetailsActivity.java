@@ -1,9 +1,17 @@
 package com.coolninja.agecalculator.ui;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -11,6 +19,7 @@ import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Age;
 import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.codes.Error;
+import com.coolninja.agecalculator.utilities.codes.Extra;
 import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManager;
 import com.microsoft.officeuifabric.persona.PersonaView;
@@ -18,6 +27,7 @@ import com.microsoft.officeuifabric.persona.PersonaView;
 import java.util.Calendar;
 import java.util.Locale;
 
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_W;
 
@@ -59,7 +69,7 @@ public class ProfileDetailsActivity extends AppCompatActivity {
         mAgeInSecondsTextView = findViewById(R.id.tv_age_seconds);
         mRefreshLayout = findViewById(R.id.srl_refresh_details);
 
-        final int profileId = getIntent().getIntExtra(MainActivity.EXTRA_PROFILE_ID, Error.NOT_FOUND);
+        final int profileId = getIntent().getIntExtra(Extra.EXTRA_PROFILE_ID, Error.NOT_FOUND);
 
         if (profileId == Error.NOT_FOUND)
             throw new AssertionError("Always pass profile ID when starting " + ProfileDetailsActivity.class.getSimpleName());
@@ -126,8 +136,25 @@ public class ProfileDetailsActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.menu_refresh) {
+            refresh();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     private void refresh() {
         if (LOG_V) Log.v(LOG_TAG, "Refreshing profile details");
+        if (!mRefreshLayout.isRefreshing()) mRefreshLayout.setRefreshing(true);
 
         if (mDisplayDetailsThread.isAlive()) {
             if (LOG_W) Log.w(LOG_TAG, "Thread display details is already running");
@@ -138,4 +165,26 @@ public class ProfileDetailsActivity extends AppCompatActivity {
         mDisplayDetailsThread.run(); //No need to start a new thread now, besides, it is illegal to start a thread more than twice
         mRefreshLayout.setRefreshing(false);
     }
+
+    public void copyValue(View view) {
+        if (LOG_V) Log.v(LOG_TAG, "Trying to copy property value into clipboard");
+
+        if (!(view instanceof TextView)) {
+            Log.e(LOG_TAG, "Couldn't not copy value; view wasn't a text view");
+            return;
+        }
+
+        TextView textView = (TextView) view;
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData data = ClipData.newPlainText(null, textView.getText());
+
+        if (clipboardManager != null) {
+            clipboardManager.setPrimaryClip(data);
+            if (LOG_D) Log.d(LOG_TAG, "Copied data");
+
+            Toast.makeText(this, getString(R.string.copied), Toast.LENGTH_SHORT).show();
+        }
+        else Log.e(LOG_TAG, "Couldn't get clipboard manager");
+    }
+
 }

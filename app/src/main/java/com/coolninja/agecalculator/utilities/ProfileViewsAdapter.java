@@ -19,9 +19,9 @@ import com.coolninja.agecalculator.utilities.codes.Error;
 import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManager;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManagerInterface;
+import com.microsoft.officeuifabric.bottomsheet.BottomSheetDialog;
+import com.microsoft.officeuifabric.bottomsheet.BottomSheetItem;
 import com.microsoft.officeuifabric.persona.PersonaView;
-import com.microsoft.officeuifabric.popupmenu.PopupMenu;
-import com.microsoft.officeuifabric.popupmenu.PopupMenuItem;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -29,12 +29,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
-import static com.coolninja.agecalculator.ui.MainActivity.EXTRA_PROFILE_ID;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
 import static com.coolninja.agecalculator.utilities.Age.DAY;
 import static com.coolninja.agecalculator.utilities.Age.MONTH;
 import static com.coolninja.agecalculator.utilities.Age.YEAR;
+import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_PROFILE_ID;
 
 public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapter.ProfileViewHolder> implements
         ProfileManagerInterface.onProfileUpdatedListener {
@@ -183,49 +183,51 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
         }
 
         private void showMoreOptions() {
+            Calendar startTime;
+            if (LOG_D) startTime = Calendar.getInstance();
+
             final Profile profile = mProfiles.get(getLayoutPosition());
             final int profileId = profile.getId();
             assert mProfileView.getCustomAccessoryView() != null : "Profile view for profile w/ ID " + profileId
                     + " must have a custom accessory view";
 
-            Calendar startTime;
-            if (LOG_D) startTime = Calendar.getInstance();
 
-            ArrayList<PopupMenuItem> popupMenuItems = new ArrayList<>();
+            ArrayList<BottomSheetItem> items = new ArrayList<>();
 
-            if (ProfileManager.isPinned(profileId))
-                popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_unpin, mContext.getString(R.string.unpin)));
-            else
-                popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_pin, mContext.getString(R.string.pin)));
-            popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_rename, mContext.getString(R.string.rename)));
-            popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_change_dob, mContext.getString(R.string.change_date_of_birth)));
-            popupMenuItems.add(new PopupMenuItem(R.id.popup_menu_delete, mContext.getString(R.string.delete)));
+            if (ProfileManager.isPinned(profileId)) items.add(new BottomSheetItem(R.id.popup_menu_unpin, R.drawable.ic_pinned, mContext.getString(R.string.unpin)));
+            else items.add(new BottomSheetItem(R.id.popup_menu_pin, R.drawable.ic_unpinned, mContext.getString(R.string.pin)));
+            items.add(new BottomSheetItem(R.id.popup_menu_rename, R.drawable.ic_edit,  mContext.getString(R.string.rename)));
+            items.add(new BottomSheetItem(R.id.popup_menu_change_dob, R.drawable.ic_calendar, mContext.getString(R.string.change_date_of_birth)));
+            items.add(new BottomSheetItem(R.id.popup_menu_delete, R.drawable.ic_remove, mContext.getString(R.string.delete)));
 
-            final PopupMenu popupMenu = new PopupMenu(mContext, mProfileView.getCustomAccessoryView(), popupMenuItems, PopupMenu.ItemCheckableBehavior.NONE);
-            popupMenu.setOnItemClickListener(new PopupMenuItem.OnClickListener() {
+            Integer avatarId = mProfileView.getAvatarImageResourceId();
+            BottomSheetItem header = new BottomSheetItem(R.id.popup_menu_header, avatarId == null? R.drawable.ic_person : avatarId, mProfileView.getTitle(), mProfileView.getSubtitle());
+
+            BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(mContext, items, header);
+            bottomSheetDialog.setOnItemClickListener(new BottomSheetItem.OnClickListener() {
                 @Override
-                public void onPopupMenuItemClicked(@NotNull PopupMenuItem popupMenuItem) {
-                    if (popupMenuItem.getId() == R.id.popup_menu_pin) {
+                public void onBottomSheetItemClick(@NotNull BottomSheetItem bottomSheetItem) {
+                    if (bottomSheetItem.getId() == R.id.popup_menu_pin) {
                         mProfileManager.pinProfile(profileId, true);
-                    } else if (popupMenuItem.getId() == R.id.popup_menu_unpin) {
+                    } else if (bottomSheetItem.getId() == R.id.popup_menu_unpin) {
                         mProfileManager.pinProfile(profileId, false);
-                    } else if (popupMenuItem.getId() == R.id.popup_menu_rename) {
+                    } else if (bottomSheetItem.getId() == R.id.popup_menu_rename) {
                         RenameDialog renameDialog = RenameDialog.newInstance(profile);
                         renameDialog.show(((FragmentActivity) mContext).getSupportFragmentManager(), mContext.getString(R.string.rename_dialog_tag));
-                    } else if (popupMenuItem.getId() == R.id.popup_menu_change_dob) {
+                    } else if (bottomSheetItem.getId() == R.id.popup_menu_change_dob) {
                         ChangeDateOfBirthDialog changeDateOfBirthDialog = ChangeDateOfBirthDialog.newInstance(profile);
                         changeDateOfBirthDialog.show(((FragmentActivity) mContext).getSupportFragmentManager(), mContext.getString(R.string.change_dob_dialog_tag));
-                    } else if (popupMenuItem.getId() == R.id.popup_menu_delete) {
+                    } else if (bottomSheetItem.getId() == R.id.popup_menu_delete) {
                         mProfileManager.removeProfile(profileId);
                     }
                 }
             });
 
+            bottomSheetDialog.show();
 
-            popupMenu.show();
             if (LOG_D) {
-                Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis()) + "milliseconds" +
-                        "to show popup menu");
+                Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
+                        + " milliseconds to show popup menu");
             }
         }
 

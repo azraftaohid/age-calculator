@@ -53,4 +53,8 @@
     <string name="display_months_days">%d Months, %d Days</string>
     <string name="empty_profiles">Ohh, such empty in here!</string>
     <string name="refresh">Refresh</string>
+    <string name="copy">Copy</string>
+    <string name="unspecified">null</string>
+    <string name="description_pick_date">Pick a date</string>
+    <string name="copied">Copied</string>
 </resources>

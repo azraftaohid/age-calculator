@@ -54,6 +54,9 @@
     <style name="details_section_property">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:onClick">copyValue"</item>
         <item name="android:layout_marginStart">16dp</item>
         <item name="android:layout_marginBottom">8dp</item>
         <item name="android:textAppearance">@style/TextAppearance.UIFabric.Body1</item>
