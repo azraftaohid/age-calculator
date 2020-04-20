@@ -17,6 +17,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Age;
+import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.codes.Error;
 import com.coolninja.agecalculator.utilities.codes.Extra;
@@ -90,6 +91,7 @@ public class ProfileDetailsActivity extends AppCompatActivity {
                 if (mProfileManager == null) mProfileManager = ProfileManager.getProfileManager(ProfileDetailsActivity.this);
 
                 final Profile profile = mProfileManager.getProfileById(profileId);
+                final Avatar avatar = profile.getAvatar();
                 final Birthday birthday = profile.getBirthday();
                 Age age = profile.getAge();
 
@@ -106,6 +108,8 @@ public class ProfileDetailsActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         mProfileView.setName(profile.getName());
+                        if (avatar != null) mProfileView.setAvatarImageBitmap(avatar.getBitmap());
+
                         mDobTextView.setText(String.format(Locale.ENGLISH, getString(R.string.long_date_format),
                                 birthday.getMonth().getShortName(), birthday.get(Birthday.DAY), birthday.get(Birthday.YEAR)));
 

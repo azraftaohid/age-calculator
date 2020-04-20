@@ -5,9 +5,11 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.util.Log;
 
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner;
 
+import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.codes.Error;
+import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
 import java.util.Calendar;
 
 import static org.hamcrest.Matchers.greaterThan;
@@ -28,15 +31,15 @@ import static org.junit.Assert.assertThat;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-@RunWith(AndroidJUnit4.class)
+@RunWith(AndroidJUnit4ClassRunner.class)
 public class ExampleInstrumentedTest {
     private static final String LOG_TAG = ExampleInstrumentedTest.class.getSimpleName();
     private static final String PROFILE_MANAGER_PREF = "com.coolninja.agecalculator.agecalculator.pref.PROFILEMANAGER";
     private static final String TEST_PREF = "com.coolninja.agecalculator.pref.TEST";
     private static final String TEST_STRING_KEY = "com.coolninja.agecalculator.pref.TEST.STRING";
 
-    Context mContext;
-    Resources mResources;
+    private Context mContext;
+    private Resources mResources;
 
     @Test
     public void compareJsonObject() {
@@ -52,6 +55,21 @@ public class ExampleInstrumentedTest {
         }
 
         assertEquals(obj1.toString(), obj2.toString());
+    }
+
+    @Test
+    public void jsonObjectValueReplace() {
+        Profile profile = new Profile("Simple Name", new Birthday(2000, 5, 13), null);
+        JSONObject obj = profile.toJSONObject();
+
+        try {
+            Log.v(LOG_TAG, "JSON Object before: \n" + obj.toString(4));
+            obj.put("profile.name", "Updated Name");
+            Log.v(LOG_TAG, "JSON Object after: \n" + obj.toString(4));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Before
@@ -171,6 +189,13 @@ public class ExampleInstrumentedTest {
 
         long timeTaken = Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis();
         Log.d(LOG_TAG, "Time taken to get long string from preference manager for " + attempts + " times: " + timeTaken + " milliseconds");
+    }
+
+    @Test
+    public void arrayToString() {
+        String[] array = {"str1", "str2", "str3"};
+        Log.v(LOG_TAG, array.toString());
+        Log.v(LOG_TAG, Arrays.toString(array));
     }
 
 }

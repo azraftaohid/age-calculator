@@ -18,10 +18,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.coolninja.agecalculator.R;
-import com.coolninja.agecalculator.utilities.ProfileInfoDialog;
+import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
+import com.coolninja.agecalculator.utilities.ProfileInfoInputDialog;
 import com.coolninja.agecalculator.utilities.ProfileViewsAdapter;
-import com.coolninja.agecalculator.utilities.codes.Error;
 import com.coolninja.agecalculator.utilities.codes.Request;
 import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManager;
@@ -31,18 +31,19 @@ import com.coolninja.agecalculator.utilities.tagmanagement.TagManager;
 import java.util.Calendar;
 
 import static com.coolninja.agecalculator.utilities.codes.Error.NOT_FOUND;
+import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_AVATAR_FILE_NAME;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_DAY;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_MONTH;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_NAME;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_YEAR;
-import static com.coolninja.agecalculator.utilities.codes.Request.REQUEST_DATE_OF_BIRTH;
 import static com.coolninja.agecalculator.utilities.codes.Request.REQUEST_NEW_PROFILE_INFO;
 
 public class MainActivity extends AppCompatActivity implements ProfileManagerInterface.onProfileUpdatedListener,
         ProfileManagerInterface.onProfilePinnedListener, ProfileManagerInterface.onProfileAddedListener,
-        ProfileInfoDialog.OnProfileInfoSubmitListener, ProfileManagerInterface.onProfileRemovedListener {
+        ProfileInfoInputDialog.OnProfileInfoSubmitListener, ProfileManagerInterface.onProfileRemovedListener {
 
-    public static final int LOG_LEVEL = Log.VERBOSE;
+    //Change log level to limit logging scopes
+    private static final int LOG_LEVEL = Log.DEBUG;
     @SuppressWarnings("ConstantConditions")
     public static final boolean LOG_V = LOG_LEVEL <= Log.DEBUG;
     @SuppressWarnings("ConstantConditions")
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     public static final boolean LOG_W = LOG_LEVEL <= Log.WARN;
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
-    private static final String LOG_TAG_PERFORMANCE = MainActivity.class.getSimpleName() + ".Performance";
+    private static final String LOG_TAG_PERFORMANCE = LOG_TAG + ".Performance";
 
     @SuppressWarnings("FieldCanBeLocal")
     private RecyclerView mPinnedProfilesRecyclerView;
@@ -129,6 +130,9 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * This method should be called to introduce first-time users to the app
+     */
     void launchWelcomeActivity() {
         Intent setUpIntent = new Intent(this, WelcomeActivity.class);
         startActivityForResult(setUpIntent, REQUEST_NEW_PROFILE_INFO);
@@ -145,6 +149,11 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
                         data.getIntExtra(EXTRA_MONTH, NOT_FOUND),
                         data.getIntExtra(EXTRA_DAY, NOT_FOUND));
 
+                Avatar avatar = null;
+                if (data.hasExtra(EXTRA_AVATAR_FILE_NAME)) {
+                    avatar = Avatar.retrieveAvatar(this, data.getStringExtra(EXTRA_AVATAR_FILE_NAME));
+                }
+
                 Profile profile = new Profile(name, dob, new ProfileManagerInterface.onProfileUpdatedListener() {
                     @Override
                     public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
@@ -155,7 +164,14 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
                     public void onProfileNameUpdated(int profileId, String newName, String previousName) {
                         mProfileManager.onProfileNameUpdated(profileId, newName, previousName);
                     }
+
+                    @Override
+                    public void onProfileAvatarUpdated(int profileId, Avatar newAvatar, Avatar previousAvatar) {
+                        mProfileManager.onProfileAvatarUpdated(profileId, newAvatar, previousAvatar);
+                    }
                 });
+
+                if (avatar != null) profile.setAvatar(avatar);
 
                 mProfileManager.addProfile(profile);
                 mProfileManager.pinProfile(profile.getId(), true);
@@ -164,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     }
 
     public void showAddProfileDialog(View view) {
-        ProfileInfoDialog.newInstance(Request.REQUEST_NEW_PROFILE_INFO).show(getSupportFragmentManager(), getString(R.string.add_profile_dialog_tag));
+        ProfileInfoInputDialog.newInstance(Request.REQUEST_NEW_PROFILE_INFO).show(getSupportFragmentManager(), getString(R.string.add_profile_dialog_tag));
     }
 
     @SuppressWarnings({"unused", "SameParameterValue"})
@@ -173,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         long startTime = System.currentTimeMillis();
 
         for (int i = 0; i < howMany; i++) {
-            onProfileInfoSubmit(Request.REQUEST_NEW_PROFILE_INFO, ("Dummy " + (i + 100)), new Birthday(1920, 5, 24));
+            onProfileInfoSubmit(Request.REQUEST_NEW_PROFILE_INFO, null, ("Dummy " + (i + 100)), new Birthday(1920, 5, 24));
         }
 
         long requiredTime = System.currentTimeMillis() - startTime;
@@ -218,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     }
 
     @Override
-    public void onProfileInfoSubmit(int requestCode, String name, Birthday dateOfBirth) {
+    public void onProfileInfoSubmit(int requestCode, Avatar avatar, String name, Birthday dateOfBirth) {
         if (requestCode == Request.REQUEST_NEW_PROFILE_INFO) {
             Profile profile = new Profile(name, dateOfBirth, new ProfileManagerInterface.onProfileUpdatedListener() {
                 @Override
@@ -230,7 +246,13 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
                 public void onProfileNameUpdated(int profileId, String newName, String previousName) {
                     mProfileManager.onProfileNameUpdated(profileId, newName, previousName);
                 }
+
+                @Override
+                public void onProfileAvatarUpdated(int profileId, Avatar newAvatar, Avatar previousAvatar) {
+                    mProfileManager.onProfileAvatarUpdated(profileId, newAvatar, previousAvatar);
+                }
             });
+            profile.setAvatar(avatar);
 
             mProfileManager.addProfile(profile);
         }
@@ -252,6 +274,14 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         } else {
             mOtherProfileViewsAdapter.onProfileNameUpdated(profileId, newName, previousName);
         }
+    }
+
+    @Override
+    public void onProfileAvatarUpdated(int profileId, Avatar newAvatar, Avatar previousAvatar) {
+        if (TagManager.getTaggedIds(TagManager.TAG_PIN).contains(profileId))
+            mPinnedProfileViewsAdapter.onProfileAvatarUpdated(profileId, newAvatar, previousAvatar);
+        else
+            mOtherProfileViewsAdapter.onProfileAvatarUpdated(profileId, newAvatar, previousAvatar);
     }
 
     @Override

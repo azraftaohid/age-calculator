@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.coolninja.agecalculator.R;
+import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.codes.Error;
 import com.coolninja.agecalculator.utilities.tagmanagement.TagManager;
@@ -20,6 +21,7 @@ import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_I;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_W;
+import static com.coolninja.agecalculator.utilities.profilemanagement.Profile.AVATAR_NAME;
 
 public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedListener {
     private static final String LOG_TAG = ProfileManager.class.getSimpleName();
@@ -90,12 +92,20 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
                     Birthday dob = new Birthday(year, month, day);
 
+                    Avatar avatar = null;
+                    if (jsonProfile.has(AVATAR_NAME)) {
+                        if (LOG_I) Log.i(LOG_TAG, "Found avatar for profile w/ ID: " + id);
+                        avatar = Avatar.retrieveAvatar(context, jsonProfile.getString(AVATAR_NAME));
+                    }
+
                     if (nextProfileId <= id) {
                         nextProfileId = id + 1;
                         if (LOG_I) Log.i(LOG_TAG, "Max set profile id is now: " + getMaxedId());
                     }
 
                     Profile profile = new Profile(name, dob, id, manager);
+                    if (avatar != null) profile.setAvatar(avatar);
+
                     manager.mProfiles.add(profile);
 
                     if (LOG_D) {
@@ -222,7 +232,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
     @Override
     public void onProfileNameUpdated(int profileId, String newName, String previousName) {
-        Log.i(LOG_TAG, "Renaming profile w/ ID " + profileId + " from " + previousName + " to " + newName);
+        if (LOG_V) Log.v(LOG_TAG, "Name changed from " + previousName + " to " + newName + " for profile w/ ID " + profileId);
 
         JSONObject object = getJsonProfile(profileId);
         assert object != null : "No json object for profile w/ ID " + profileId + " was found";
@@ -238,6 +248,32 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
         if (mContext instanceof ProfileManagerInterface.onProfileUpdatedListener)
             ((ProfileManagerInterface.onProfileUpdatedListener) mContext).onProfileNameUpdated(profileId, newName, previousName);
+    }
+
+    @Override
+    public void onProfileAvatarUpdated(int profileId, Avatar newAvatar, Avatar previousAvatar) {
+        if (LOG_V) Log.v(LOG_TAG, "Avatar changed for profile w/ ID: " + profileId);
+
+        JSONObject object = getJsonProfile(profileId);
+
+        if (object == null) {
+            Log.w(LOG_TAG, "No json object for profile w/ ID " + profileId + " was found in json profiles array");
+
+            object = getProfileById(profileId).toJSONObject();
+            mJsonProfiles.put(object); //It replaces the old value
+        }
+
+        try {
+            object.put(AVATAR_NAME, newAvatar.getAvatarFileName());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        updatePreference();
+
+        if (mContext instanceof ProfileManagerInterface.onProfileUpdatedListener) {
+            ((ProfileManagerInterface.onProfileUpdatedListener) mContext).onProfileAvatarUpdated(profileId, newAvatar, previousAvatar);
+        }
     }
 
     @SuppressWarnings("WeakerAccess")

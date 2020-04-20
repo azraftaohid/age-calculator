@@ -1,5 +1,6 @@
 package com.coolninja.agecalculator.utilities.profilemanagement;
 
+import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
 
 public class ProfileManagerInterface {
@@ -11,6 +12,8 @@ public class ProfileManagerInterface {
         void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay);
 
         void onProfileNameUpdated(int profileId, String newName, String previousName);
+
+        void onProfileAvatarUpdated(int profileId, Avatar newAvatar, Avatar previousAvatar);
     }
 
     public interface onProfileRemovedListener {
@@ -21,18 +24,17 @@ public class ProfileManagerInterface {
         void onProfilePinned(int profileId, boolean isPinned);
     }
 
-    @SuppressWarnings("unused")
     public interface updatable {
         String getName();
 
         Birthday getBirthday();
 
+        Avatar getAvatar();
+
         void updateName(String newName);
 
         void updateBirthday(int newBirthYear, int newBirthMonth, int newBirthDay);
 
-        String getPreviousName();
-
-        Birthday getPreviousBirthday();
+        void updateAvatar(Avatar newAvatar);
     }
 }

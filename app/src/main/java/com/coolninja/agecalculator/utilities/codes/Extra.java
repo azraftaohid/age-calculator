@@ -6,4 +6,5 @@ public class Extra {
     public static final String EXTRA_YEAR = "com.coolninja.agecalculator.extra.YEAR";
     public static final String EXTRA_MONTH = "com.coolninja.agecalculator.extra.MONTH";
     public static final String EXTRA_DAY = "com.coolninja.agecalculator.extra.DAY";
+    public static final String EXTRA_AVATAR_FILE_NAME = "com.coolninja.agecalculator.extra.AVATAR_FILE_NAME";
 }

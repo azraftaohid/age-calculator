@@ -1,8 +1,13 @@
 package com.coolninja.agecalculator;
 
+import android.util.Log;
+
 import com.coolninja.agecalculator.utilities.Birthday;
 
 import org.junit.Test;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -47,4 +52,5 @@ public class GeneralTest {
         assertThat(y, is(equalTo("tomatoes"))); //false; a new instance of String was returned when it was updated
         assertThat(b.get(Birthday.DAY), is(equalTo(9))); //true
     }
+
 }

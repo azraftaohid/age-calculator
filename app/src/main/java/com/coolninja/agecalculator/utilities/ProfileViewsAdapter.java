@@ -76,6 +76,10 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
         Profile profile = mProfiles.get(position);
         holder.mProfileView.setName(profile.getName());
 
+        Avatar avatar = profile.getAvatar();
+        if (avatar != null)
+            holder.mProfileView.setAvatarImageBitmap(profile.getAvatar().getBitmap());
+
         long[] age = profile.getAge().get(Age.MODE_YEAR_MONTH_DAY);
         holder.mProfileView.setSubtitle(String.format(Locale.ENGLISH, mContext.getString(R.string.display_years_months_days),
                 age[YEAR], age[MONTH], age[DAY]));
@@ -95,6 +99,11 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
 
     @Override
     public void onProfileNameUpdated(int profileId, String newName, String previousName) {
+        notifyItemChanged(getProfilePosition(profileId));
+    }
+
+    @Override
+    public void onProfileAvatarUpdated(int profileId, Avatar newAvatar, Avatar previousAvatar) {
         notifyItemChanged(getProfilePosition(profileId));
     }
 

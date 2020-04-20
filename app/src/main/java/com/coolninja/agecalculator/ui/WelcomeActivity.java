@@ -7,19 +7,23 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.coolninja.agecalculator.R;
-import com.coolninja.agecalculator.utilities.ProfileInfoDialog;
+import com.coolninja.agecalculator.utilities.Avatar;
+import com.coolninja.agecalculator.utilities.ProfileInfoInputDialog;
 import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.codes.Request;
 
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
+import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_AVATAR_FILE_NAME;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_DAY;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_MONTH;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_NAME;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_YEAR;
 
-public class WelcomeActivity extends AppCompatActivity implements ProfileInfoDialog.OnProfileInfoSubmitListener {
+public class WelcomeActivity extends AppCompatActivity implements ProfileInfoInputDialog.OnProfileInfoSubmitListener {
     private static final String LOG_TAG = WelcomeActivity.class.getSimpleName();
 
     private TextView mChoseNameTextView;
@@ -29,12 +33,13 @@ public class WelcomeActivity extends AppCompatActivity implements ProfileInfoDia
 
     private String mName;
     private Birthday mDob;
+    @Nullable private Avatar mAvatar;
 
-    private ProfileInfoDialog mProfileInfoDialog;
+    private ProfileInfoInputDialog mProfileInfoInputDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Initializing Welcome Activity");
+        if (LOG_V) Log.v(LOG_TAG, "Initializing Welcome Activity");
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
@@ -44,42 +49,45 @@ public class WelcomeActivity extends AppCompatActivity implements ProfileInfoDia
         mChoseNameTextView = findViewById(R.id.tv_chosed_name);
         mChoseDateTextView = findViewById(R.id.tv_chosed_date);
 
-        mProfileInfoDialog = ProfileInfoDialog.newInstance(Request.REQUEST_NEW_PROFILE_INFO);
+        mProfileInfoInputDialog = ProfileInfoInputDialog.newInstance(Request.REQUEST_NEW_PROFILE_INFO);
     }
 
     public void showAddProfileDialog(View view) {
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Displaying the add profile dialog view");
-        mProfileInfoDialog.show(getSupportFragmentManager(), getString(R.string.add_profile_dialog_tag));
+        if (LOG_V) Log.v(LOG_TAG, "Displaying the add profile dialog view");
+        mProfileInfoInputDialog.show(getSupportFragmentManager(), getString(R.string.add_profile_dialog_tag));
     }
 
     public void finishWelcomeActivity(View view) {
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Finishing Welcome Activity");
+        if (LOG_V) Log.v(LOG_TAG, "Finishing Welcome Activity");
 
         Intent returnIntent = new Intent();
 
-        if (MainActivity.LOG_V) Log.v(LOG_TAG, "Putting " + mName + " name to the return intent");
+        if (LOG_V) Log.v(LOG_TAG, "Putting " + mName + " name into the return intent");
         returnIntent.putExtra(EXTRA_NAME, mName);
 
-        if (MainActivity.LOG_V)
-            Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.YEAR) + " name to the return intent");
+        if (LOG_V) Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.YEAR) + " name into the return intent");
         returnIntent.putExtra(EXTRA_YEAR, mDob.get(Birthday.YEAR));
 
-        if (MainActivity.LOG_V)
-            Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.MONTH) + " name to the return intent");
+        if (LOG_V) Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.MONTH) + " name into the return intent");
         returnIntent.putExtra(EXTRA_MONTH, mDob.get(Birthday.MONTH));
 
-        if (MainActivity.LOG_V)
-            Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.DAY) + " name to the return intent");
+        if (LOG_V) Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.DAY) + " name into the return intent");
         returnIntent.putExtra(EXTRA_DAY, mDob.get(Birthday.DAY));
+
+        if (LOG_V) if (mAvatar != null) {
+            Log.v(LOG_TAG, "Putting " + mAvatar.getAvatarFileName() + " avatar name into the return intent");
+            returnIntent.putExtra(EXTRA_AVATAR_FILE_NAME, mAvatar.getAvatarFileName());
+        }
 
         setResult(RESULT_OK, returnIntent);
         finish();
     }
 
     @Override
-    public void onProfileInfoSubmit(int requestCode, String name, Birthday dateOfBirth) {
+    public void onProfileInfoSubmit(int requestCode, @Nullable Avatar avatar, String name, Birthday dateOfBirth) {
         mName = name;
         mDob = dateOfBirth;
+        mAvatar = avatar;
 
         mSetDobButton.setVisibility(View.GONE);
         mDoneButton.setVisibility(View.VISIBLE);
