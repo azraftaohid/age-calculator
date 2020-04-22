@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Calendar;
 
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_I;
@@ -23,6 +24,12 @@ import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
 //TODO Figure out a way to reduce the time takes to load a avatar; or do it on another thread
 public class Avatar {
     private static final String LOG_TAG = Avatar.class.getSimpleName();
+    private static final String LOG_TAG_PERFORMANCE = LOG_TAG + ".performance";
+
+    private static final String SEPARATOR = "-";
+    private static final String FORMAT_FILE_NAME = "%s" + SEPARATOR + "%s";
+    private static final String CACHE = "cached";
+    private static final String STORE = "stored";
 
     private Context mContext;
     private Bitmap mAvatarBitmap;
@@ -84,28 +91,62 @@ public class Avatar {
             Log.d(LOG_TAG, "Received avatar image was square");
         }
 
-        mAvatarFileName = generatePngFileName();
+        String fileName = String.format(FORMAT_FILE_NAME, CACHE, generatePngFileName(mContext.getCacheDir()));
 
-        if (LOG_V) Log.v(LOG_TAG, "Creating avatar file");
-        File avatarFile = new File(mContext.getFilesDir(), mAvatarFileName);
+        if (LOG_V) Log.v(LOG_TAG, "Caching avatar image");
+        File avatarFile = new File(mContext.getCacheDir(), fileName);
 
-        try (FileOutputStream outputStream = new FileOutputStream(avatarFile)){
-            if (LOG_V) Log.v(LOG_TAG, "Compressing the avatar bitmap to the output stream");
+        try (FileOutputStream outputStream = new FileOutputStream(avatarFile)) {
             mAvatarBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+            mAvatarFileName = fileName;
+
+            if (LOG_V) Log.v(LOG_TAG, "Avatar image compressed successfully");
         } catch (IOException e) {
+            Log.e(LOG_TAG, "Couldn't compress avatar image to the output stream: " + (e.getMessage() != null ? e.getMessage() : ""));
             e.printStackTrace();
         }
 
     }
 
-    private void loadAvatarBitmap() {
-        if (LOG_V) Log.v(LOG_TAG, "Loading avatar bitmap from file");
+    public void storePermanently() {
+        Calendar start;
+        if (LOG_D) start = Calendar.getInstance();
 
-        assert mAvatarFileName != null : "Avatar file name must be defined before invoking load avatar bitmap";
-        File avatarFile = new File(mContext.getFilesDir(), mAvatarFileName);
+        if (LOG_V) Log.v(LOG_TAG, "Storing avatar image permanently");
+
+        if (!mAvatarFileName.split(SEPARATOR)[0].equals(STORE)) {
+            String fileName = String.format(FORMAT_FILE_NAME, STORE, generatePngFileName(mContext.getFilesDir()));
+            File avatarFile = new File(mContext.getFilesDir(), fileName);
+
+            try (FileOutputStream outputStream = new FileOutputStream(avatarFile)) {
+                if (LOG_V) Log.v(LOG_TAG, "Compressing avatar image");
+                mAvatarBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+                mAvatarFileName = fileName;
+
+                if (LOG_D) Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - start.getTimeInMillis()) +
+                        " milliseconds to permanently store avatar file");
+
+                return;
+            } catch (IOException e) {
+                Log.e(LOG_TAG, "Couldn't compress avatar image to the output stream: " + (e.getMessage() != null ? e.getMessage() : ""));
+                e.printStackTrace();
+            }
+
+            return;
+        }
+
+        if (LOG_I) Log.i(LOG_TAG, "Avatar was already stored");
+    }
+
+    private void loadAvatarBitmap() {
+        if (LOG_V) Log.v(LOG_TAG, "Loading avatar image from storage");
+
+        assert mAvatarFileName != null : "Avatar file name must be defined before invoking Avatar#loadAvatarBitmap()";
+        File avatarFile;
+        avatarFile = new File(mAvatarFileName.split(SEPARATOR)[0].equals(STORE) ? mContext.getFilesDir() : mContext.getCacheDir(), mAvatarFileName);
 
         if (avatarFile.exists()) {
-            if (LOG_I) Log.i(LOG_TAG, "Avatar file with the file name exists");
+            if (LOG_I) Log.i(LOG_TAG, "Avatar image exists");
 
             try (FileInputStream inputStream = new FileInputStream(avatarFile)){
                 if (Build.VERSION.SDK_INT >= 28) {
@@ -125,12 +166,12 @@ public class Avatar {
                 e.printStackTrace();
             }
         } else {
-            Log.e(LOG_TAG, "Couldn't load avatar bitmap, because no such file exists");
+            Log.e(LOG_TAG, "Couldn't load avatar image, because no such file exists");
         }
 
     }
 
-    private String generatePngFileName() {
+    private String generatePngFileName(File dir) {
         if (LOG_V) Log.v(LOG_TAG, "Generating png file name");
 
         String uniqueName;
@@ -139,15 +180,15 @@ public class Avatar {
         do {
             rand = (int) (Math.random() * 100000);
             uniqueName = rand + ".png";
-        } while (!isUniqueFileName(uniqueName));
+        } while (!isUniqueFileName(uniqueName, dir));
 
         return uniqueName;
     }
 
-    private boolean isUniqueFileName(String name) {
+    private boolean isUniqueFileName(String name, File dir) {
         boolean isMatched = false;
 
-        String[] existingNames = mContext.getFilesDir().list();
+        String[] existingNames = dir.list();
         if (LOG_V) Log.v(LOG_TAG, "Existing file names: " + Arrays.toString(existingNames));
         if (LOG_V) Log.v(LOG_TAG, "Passed file name: " + name);
 
@@ -181,12 +222,24 @@ public class Avatar {
         return mAvatarFileName;
     }
 
-    @SuppressWarnings("WeakerAccess")
     public boolean deleteAvatarFile() {
-        if (LOG_V) Log.v(LOG_TAG, "Deleting avatar file");
+        Calendar start;
+        if (LOG_D) start = Calendar.getInstance();
 
-        File file = new File(mContext.getFilesDir(), mAvatarFileName);
-        return file.delete();
+        if (LOG_V) Log.v(LOG_TAG, "Deleting avatar image file");
+
+        if (mAvatarFileName != null) {
+            File file = new File(mContext.getFilesDir(), mAvatarFileName);
+            boolean isDeleted = file.delete();
+
+            if (LOG_D) Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - start.getTimeInMillis()) +
+                    " milliseconds to delete avatar image file");
+
+            return isDeleted;
+        }
+
+        if (LOG_I) Log.i(LOG_TAG, "Avatar image file wasn't stored permanently before");
+        return false;
     }
 
 }

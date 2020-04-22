@@ -35,6 +35,7 @@ import static com.coolninja.agecalculator.utilities.Age.DAY;
 import static com.coolninja.agecalculator.utilities.Age.MONTH;
 import static com.coolninja.agecalculator.utilities.Age.YEAR;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_PROFILE_ID;
+import static com.coolninja.agecalculator.utilities.codes.Request.REQUEST_MODIFY_PROFILE_INFO;
 
 public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapter.ProfileViewHolder> implements
         ProfileManagerInterface.onProfileUpdatedListener {
@@ -205,14 +206,14 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
 
             if (ProfileManager.isPinned(profileId)) items.add(new BottomSheetItem(R.id.popup_menu_unpin, R.drawable.ic_pinned, mContext.getString(R.string.unpin)));
             else items.add(new BottomSheetItem(R.id.popup_menu_pin, R.drawable.ic_unpinned, mContext.getString(R.string.pin)));
-            items.add(new BottomSheetItem(R.id.popup_menu_rename, R.drawable.ic_edit,  mContext.getString(R.string.rename)));
-            items.add(new BottomSheetItem(R.id.popup_menu_change_dob, R.drawable.ic_calendar, mContext.getString(R.string.change_date_of_birth)));
+            items.add(new BottomSheetItem(R.id.popup_menu_modify, R.drawable.ic_edit, mContext.getString(R.string.modify)));
             items.add(new BottomSheetItem(R.id.popup_menu_delete, R.drawable.ic_remove, mContext.getString(R.string.delete)));
 
             Integer avatarId = mProfileView.getAvatarImageResourceId();
             BottomSheetItem header = new BottomSheetItem(R.id.popup_menu_header, avatarId == null? R.drawable.ic_person : avatarId, mProfileView.getTitle(), mProfileView.getSubtitle());
 
             BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(mContext, items, header);
+
             bottomSheetDialog.setOnItemClickListener(new BottomSheetItem.OnClickListener() {
                 @Override
                 public void onBottomSheetItemClick(@NotNull BottomSheetItem bottomSheetItem) {
@@ -220,12 +221,8 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
                         mProfileManager.pinProfile(profileId, true);
                     } else if (bottomSheetItem.getId() == R.id.popup_menu_unpin) {
                         mProfileManager.pinProfile(profileId, false);
-                    } else if (bottomSheetItem.getId() == R.id.popup_menu_rename) {
-                        RenameDialog renameDialog = RenameDialog.newInstance(profile);
-                        renameDialog.show(((FragmentActivity) mContext).getSupportFragmentManager(), mContext.getString(R.string.rename_dialog_tag));
-                    } else if (bottomSheetItem.getId() == R.id.popup_menu_change_dob) {
-                        ChangeDateOfBirthDialog changeDateOfBirthDialog = ChangeDateOfBirthDialog.newInstance(profile);
-                        changeDateOfBirthDialog.show(((FragmentActivity) mContext).getSupportFragmentManager(), mContext.getString(R.string.change_dob_dialog_tag));
+                    } else if (bottomSheetItem.getId() == R.id.popup_menu_modify) {
+                        ProfileInfoInputDialog.newInstance(mContext, REQUEST_MODIFY_PROFILE_INFO, mContext.getString(R.string.modify), profile).show(((FragmentActivity) mContext).getSupportFragmentManager(), mContext.getString(R.string.modify_profile_dialog_tag));
                     } else if (bottomSheetItem.getId() == R.id.popup_menu_delete) {
                         mProfileManager.removeProfile(profileId);
                     }
@@ -248,6 +245,7 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
             imageView.setLongClickable(true);
             return imageView;
         }
+
     }
 
 }

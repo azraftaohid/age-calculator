@@ -5,6 +5,8 @@ import android.util.Log;
 import java.util.Calendar;
 
 public class Age {
+    public static final int LIMIT_START_YEAR = 1900;
+
     public static final int MODE_YEAR_MONTH_DAY = 0;
     public static final int MODE_YEAR_DAY = 1;
     public static final int MODE_MONTH_DAY = 2;
@@ -110,7 +112,7 @@ public class Age {
         return duration;
     }
 
-    private static boolean isLeapYear(int year) {
+    static boolean isLeapYear(int year) {
         return (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0));
     }
 

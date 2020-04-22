@@ -74,8 +74,8 @@ public class WelcomeActivity extends AppCompatActivity implements ProfileInfoInp
         if (LOG_V) Log.v(LOG_TAG, "Putting " + mDob.get(Birthday.DAY) + " name into the return intent");
         returnIntent.putExtra(EXTRA_DAY, mDob.get(Birthday.DAY));
 
-        if (LOG_V) if (mAvatar != null) {
-            Log.v(LOG_TAG, "Putting " + mAvatar.getAvatarFileName() + " avatar name into the return intent");
+        if (mAvatar != null) {
+            if (LOG_V) Log.v(LOG_TAG, "Putting " + mAvatar.getAvatarFileName() + " avatar name into the return intent");
             returnIntent.putExtra(EXTRA_AVATAR_FILE_NAME, mAvatar.getAvatarFileName());
         }
 

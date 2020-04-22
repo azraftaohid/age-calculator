@@ -59,4 +59,7 @@
     <string name="copied">Copied</string>
     <string name="description_choose_avatar">Pickup an avatar</string>
     <string name="not_resolved_activity">No Application was Found to Complete the Action</string>
+    <string name="modify">Modify</string>
+    <string name="modify_profile_dialog_tag">com.coolninja.agecalculator.tag.modify</string>
+    <string name="submit">Submit</string>
 </resources>

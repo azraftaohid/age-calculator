@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -38,7 +37,6 @@ public class RenameDialog extends DialogFragment {
 
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static RenameDialog newInstance(ProfileManagerInterface.updatable updatable) {
         if (LOG_V) Log.v(LOG_TAG, "Initializing a new instance of Rename Dialog");
 

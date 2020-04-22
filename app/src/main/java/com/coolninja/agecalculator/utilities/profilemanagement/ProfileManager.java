@@ -169,6 +169,9 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
             return;
         }
 
+        Avatar avatar = profile.getAvatar();
+        if (avatar != null) avatar.storePermanently();
+
         if (LOG_V)
             Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " to the profile manager");
         mProfiles.add(profile);
@@ -343,7 +346,19 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         return null;
     }
 
-    public void removeProfile(int profileId) {
+    public void removeProfile(final int profileId) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Avatar avatar = getProfileById(profileId).getAvatar();
+                if (avatar != null) {
+                    if (!avatar.deleteAvatarFile()) {
+                        Log.e(LOG_TAG, "There was an error deleting avatar file of profile w/ ID: " + profileId);
+                    }
+                }
+            }
+        }).start();
+
         mTagManager.removeAllTagsFromProfile(profileId);
         removeJsonProfile(profileId);
         Log.i(LOG_TAG, "Removed profile w/ ID: " + profileId + "(" + mProfiles.remove(getProfileById(profileId)) + ")");

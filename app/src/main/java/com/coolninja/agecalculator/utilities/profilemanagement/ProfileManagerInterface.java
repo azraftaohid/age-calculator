@@ -1,5 +1,7 @@
 package com.coolninja.agecalculator.utilities.profilemanagement;
 
+import androidx.annotation.Nullable;
+
 import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
 
@@ -29,6 +31,7 @@ public class ProfileManagerInterface {
 
         Birthday getBirthday();
 
+        @Nullable
         Avatar getAvatar();
 
         void updateName(String newName);
