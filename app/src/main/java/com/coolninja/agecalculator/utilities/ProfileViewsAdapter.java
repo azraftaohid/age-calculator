@@ -88,6 +88,8 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
         if (avatar != null) {
             if (LOG_V) Log.v(LOG_TAG, "Setting avatar on the view holder");
             holder.mProfileView.setAvatarImageBitmap(profile.getAvatar().getBitmap());
+        } else {
+            holder.mProfileView.setAvatarImageBitmap(null);
         }
     }
 
