@@ -94,8 +94,8 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
                     Avatar avatar = null;
                     if (jsonProfile.has(AVATAR_NAME)) {
-                        if (LOG_I) Log.i(LOG_TAG, "Found avatar for profile w/ ID: " + id);
                         avatar = Avatar.retrieveAvatar(context, jsonProfile.getString(AVATAR_NAME));
+                        if (LOG_I) Log.i(LOG_TAG, "Found avatar: " + avatar.getAvatarFileName());
                     }
 
                     if (nextProfileId <= id) {
@@ -172,8 +172,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         Avatar avatar = profile.getAvatar();
         if (avatar != null) avatar.storePermanently();
 
-        if (LOG_V)
-            Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " to the profile manager");
+        if (LOG_V) Log.v(LOG_TAG, "Adding profile w/ ID " + profile.getId() + " to the profile manager");
         mProfiles.add(profile);
         mJsonProfiles.put(profile.toJSONObject());
         if (LOG_D) Log.d(LOG_TAG, "Last profile index: " + (mProfiles.size() - 1)
@@ -256,6 +255,8 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     @Override
     public void onProfileAvatarUpdated(int profileId, Avatar newAvatar, Avatar previousAvatar) {
         if (LOG_V) Log.v(LOG_TAG, "Avatar changed for profile w/ ID: " + profileId);
+
+        newAvatar.storePermanently();
 
         JSONObject object = getJsonProfile(profileId);
 

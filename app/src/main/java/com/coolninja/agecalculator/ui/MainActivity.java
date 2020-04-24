@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         ProfileInfoInputDialog.OnProfileInfoSubmitListener, ProfileManagerInterface.onProfileRemovedListener {
 
     //Change log level to limit logging scopes
-    private static final int LOG_LEVEL = Log.WARN;
+    private static final int LOG_LEVEL = Log.VERBOSE;
     @SuppressWarnings("ConstantConditions")
     public static final boolean LOG_V = LOG_LEVEL <= Log.DEBUG;
     @SuppressWarnings("ConstantConditions")

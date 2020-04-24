@@ -1,9 +1,12 @@
 package com.coolninja.agecalculator.utilities.profilemanagement;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
+
+import org.jetbrains.annotations.NotNull;
 
 public class ProfileManagerInterface {
     public interface onProfileAddedListener {
@@ -38,6 +41,6 @@ public class ProfileManagerInterface {
 
         void updateBirthday(int newBirthYear, int newBirthMonth, int newBirthDay);
 
-        void updateAvatar(Avatar newAvatar);
+        void updateAvatar(@NonNull Avatar newAvatar);
     }
 }

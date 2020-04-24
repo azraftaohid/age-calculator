@@ -2,7 +2,6 @@ package com.coolninja.agecalculator.utilities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -66,24 +65,30 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
     @NonNull
     @Override
     public ProfileViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.profile_view, parent, false);
+        if (LOG_V) Log.v(LOG_TAG, "Creating profile view holder");
 
-        return new ProfileViewHolder(view);
+        return new ProfileViewHolder(mInflater.inflate(R.layout.profile_view, parent, false));
     }
 
     @Override
     public void onBindViewHolder(@NonNull ProfileViewHolder holder, int position) {
-        if (LOG_V) Log.i(LOG_TAG, "Binding profile view with adapter, position: " + position);
+        if (LOG_V) Log.v(LOG_TAG, "Binding profile view with adapter");
         Profile profile = mProfiles.get(position);
+        if (LOG_V) Log.v(LOG_TAG, "Position: " + position + "; ID: " + profile.getId());
+
+        if (LOG_V) Log.v(LOG_TAG, "Setting name on the view holder");
         holder.mProfileView.setName(profile.getName());
 
-        Avatar avatar = profile.getAvatar();
-        if (avatar != null)
-            holder.mProfileView.setAvatarImageBitmap(profile.getAvatar().getBitmap());
-
         long[] age = profile.getAge().get(Age.MODE_YEAR_MONTH_DAY);
+        if (LOG_V) Log.v(LOG_TAG, "Setting age on view holder, position: " + position);
         holder.mProfileView.setSubtitle(String.format(Locale.ENGLISH, mContext.getString(R.string.display_years_months_days),
                 age[YEAR], age[MONTH], age[DAY]));
+
+        Avatar avatar = profile.getAvatar();
+        if (avatar != null) {
+            if (LOG_V) Log.v(LOG_TAG, "Setting avatar on the view holder");
+            holder.mProfileView.setAvatarImageBitmap(profile.getAvatar().getBitmap());
+        }
     }
 
     @Override
@@ -135,6 +140,22 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
     }
 
     public void refresh() {
+        if (LOG_V) Log.v(LOG_TAG, "Refreshing profiles in adapter " + mAdapterNumber);
+
+        ArrayList<Profile> profiles = ProfileManager.getProfileManager(mContext).getProfiles();
+        ArrayList<Profile> currentlyAssociatedProfiles = new ArrayList<>(mProfiles);
+
+        mProfiles.clear();
+        for (Profile updatedProfile : profiles) {
+            for (int i = 0; i < currentlyAssociatedProfiles.size(); i++) {
+                if (currentlyAssociatedProfiles.get(i).getId() == updatedProfile.getId()) {
+                    currentlyAssociatedProfiles.remove(i);
+                    mProfiles.add(updatedProfile);
+                    break;
+                }
+            }
+        }
+
         notifyItemRangeChanged(0, mProfiles.size());
     }
 
@@ -159,6 +180,7 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
             if (LOG_V) Log.v(LOG_TAG, "Initializing profile view holder");
 
             mProfileView = itemView.findViewById(R.id.pv_profile_template);
+            if (mProfileView.getAvatarImageDrawable() != null) Log.wtf(LOG_TAG, "Profile view has avatar loaded");
 
             mProfileView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -175,7 +197,7 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
                 }
             });
 
-            ImageView customAccessoryView = getCustomAccessoryView(mContext.getDrawable(R.drawable.ic_more_vertical));
+            ImageView customAccessoryView = CommonUtilities.generateCustomAccessoryView(mContext, R.drawable.ic_more_vertical);
             customAccessoryView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -198,9 +220,6 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
 
             final Profile profile = mProfiles.get(getLayoutPosition());
             final int profileId = profile.getId();
-            assert mProfileView.getCustomAccessoryView() != null : "Profile view for profile w/ ID " + profileId
-                    + " must have a custom accessory view";
-
 
             ArrayList<BottomSheetItem> items = new ArrayList<>();
 
@@ -235,15 +254,6 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<ProfileViewsAdapte
                 Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
                         + " milliseconds to show popup menu");
             }
-        }
-
-        private ImageView getCustomAccessoryView(Drawable drawable) {
-            final ImageView imageView = new ImageView(mContext);
-            imageView.setImageDrawable(drawable);
-            imageView.setClickable(true);
-            imageView.setFocusable(true);
-            imageView.setLongClickable(true);
-            return imageView;
         }
 
     }

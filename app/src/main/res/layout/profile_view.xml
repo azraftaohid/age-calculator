@@ -2,12 +2,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <com.microsoft.officeuifabric.persona.PersonaView
         android:id="@+id/pv_profile_template"
-        app:subtitle="null"
         style="@style/profile_view" />
 
 </LinearLayout>

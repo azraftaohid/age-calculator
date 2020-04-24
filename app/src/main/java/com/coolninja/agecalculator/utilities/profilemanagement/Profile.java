@@ -9,6 +9,7 @@ import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.codes.Error;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -75,7 +76,7 @@ public class Profile implements ProfileManagerInterface.updatable {
     }
 
     @Override
-    public void updateAvatar(Avatar newAvatar) {
+    public void updateAvatar(@NotNull Avatar newAvatar) {
         if (LOG_V) Log.v(LOG_TAG, "Updating avatar for profile w/ ID " + mId);
 
         Avatar prevAvatar = null;

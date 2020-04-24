@@ -52,7 +52,7 @@ public class ProfileInfoInputDialog extends DialogFragment {
     private ImageView mAvatarImageView;
     private String mEnteredName;
     private String mEnteredDateOfBirth;
-    private Avatar mAvatar;
+    @Nullable private Avatar mAvatar;
     private String mTitle;
 
     private Calendar mStart;
@@ -150,8 +150,9 @@ public class ProfileInfoInputDialog extends DialogFragment {
 
                         if (mUpdatable != null) {
                             mUpdatable.updateName(mEnteredName);
-                            mUpdatable.updateAvatar(mAvatar);
                             mUpdatable.updateBirthday(year, month, day);
+
+                            if (mAvatar != null) mUpdatable.updateAvatar(mAvatar);
                         } else {
                             Birthday birthday = new Birthday(year, month, day);
                             mOnProfileInfoSubmitted.onProfileInfoSubmit(mRequestCode, mAvatar, mEnteredName, birthday);

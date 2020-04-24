@@ -2,11 +2,13 @@ package com.coolninja.agecalculator.utilities;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
@@ -47,5 +49,13 @@ public class CommonUtilities {
     public static void showSoftKeyboard(@NonNull Window window, View view) {
         if (!view.requestFocus()) Log.w(LOG_TAG, "Couldn't request focus");
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+    }
+
+    public static ImageView generateCustomAccessoryView(Context context, int drawableId) {
+        final ImageView imageView = new ImageView(context);
+        imageView.setImageDrawable(context.getDrawable(drawableId));
+        imageView.setClickable(true);
+        imageView.setFocusable(true);
+        return imageView;
     }
 }

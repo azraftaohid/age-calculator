@@ -4,10 +4,12 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,23 +21,27 @@ import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Age;
 import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
+import com.coolninja.agecalculator.utilities.CommonUtilities;
+import com.coolninja.agecalculator.utilities.RenameDialog;
 import com.coolninja.agecalculator.utilities.codes.Error;
 import com.coolninja.agecalculator.utilities.codes.Extra;
 import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManager;
+import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManagerInterface;
 import com.microsoft.officeuifabric.persona.PersonaView;
 
 import java.util.Calendar;
 import java.util.Locale;
 
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_I;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
-import static com.coolninja.agecalculator.ui.MainActivity.LOG_W;
 
-public class ProfileDetailsActivity extends AppCompatActivity {
+public class ProfileDetailsActivity extends AppCompatActivity implements ProfileManagerInterface.onProfileUpdatedListener {
     private final static String LOG_TAG = ProfileDetailsActivity.class.getSimpleName();
+    private final static String LOG_TAG_PERFORMANCE = LOG_TAG + ".performance";
 
-    private ProfileManager mProfileManager;
+    private Profile mProfile;
     private PersonaView mProfileView;
     private TextView mDobTextView;
     private TextView mNextBirthdayInTextView;
@@ -47,8 +53,6 @@ public class ProfileDetailsActivity extends AppCompatActivity {
     private TextView mAgeInMinutesTextView;
     private TextView mAgeInSecondsTextView;
     private SwipeRefreshLayout mRefreshLayout;
-
-    private Thread mDisplayDetailsThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +77,7 @@ public class ProfileDetailsActivity extends AppCompatActivity {
         final int profileId = getIntent().getIntExtra(Extra.EXTRA_PROFILE_ID, Error.NOT_FOUND);
 
         if (profileId == Error.NOT_FOUND)
-            throw new AssertionError("Always pass profile ID when starting " + ProfileDetailsActivity.class.getSimpleName());
+            throw new AssertionError("Always pass a valid profile ID when starting " + ProfileDetailsActivity.class.getSimpleName());
         else if (profileId == Error.DEFAULT) {
             throw new AssertionError("Profile ID is an error code");
         }
@@ -85,59 +89,96 @@ public class ProfileDetailsActivity extends AppCompatActivity {
             }
         });
 
-        mDisplayDetailsThread = new Thread(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                if (mProfileManager == null) mProfileManager = ProfileManager.getProfileManager(ProfileDetailsActivity.this);
+                mProfile = ProfileManager.getProfileManager(ProfileDetailsActivity.this).getProfileById(profileId);
+                initUi();
+            }
+        }).start();
 
-                final Profile profile = mProfileManager.getProfileById(profileId);
-                final Avatar avatar = profile.getAvatar();
-                final Birthday birthday = profile.getBirthday();
-                Age age = profile.getAge();
-
-                final long[] durationBeforeBirthday = age.getDurationBeforeNextBirthday(Age.MODE_MONTH_DAY);
-                final long[] ageYearMonthDay = age.get(Age.MODE_YEAR_MONTH_DAY);
-                final long[] ageYearDay = age.get(Age.MODE_YEAR_DAY);
-                final long[] ageMonthDay = age.get(Age.MODE_MONTH_DAY);
-                final long ageInDays = age.get(Age.MODE_DAY)[Age.DAY];
-                final long ageInHours = age.get(Age.MODE_HOUR)[Age.HOUR];
-                final long ageInMinutes = age.get(Age.MODE_MINUTES)[Age.MINUTE];
-                final long ageInSeconds = age.get(Age.MODE_SECONDS)[Age.SECOND];
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mProfileView.setName(profile.getName());
-                        if (avatar != null) mProfileView.setAvatarImageBitmap(avatar.getBitmap());
-
-                        mDobTextView.setText(String.format(Locale.ENGLISH, getString(R.string.long_date_format),
-                                birthday.getMonth().getShortName(), birthday.get(Birthday.DAY), birthday.get(Birthday.YEAR)));
-
-                        mNextBirthdayInTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_months_days),
-                                durationBeforeBirthday[Age.MONTH], durationBeforeBirthday[Age.DAY]));
-
-                        mAgeYearMonthDaysTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_years_months_days),
-                                ageYearMonthDay[Age.YEAR], ageYearMonthDay[Age.MONTH], ageYearMonthDay[Age.DAY]));
-                        mAgeYearDaysTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_years_days),
-                                ageYearDay[Age.YEAR], ageYearDay[Age.DAY]));
-                        mAgeMonthDaysTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_months_days),
-                                ageMonthDay[Age.MONTH], ageMonthDay[Age.DAY]));
-                        mAgeInDaysTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_days), ageInDays));
-                        mAgeInHoursTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_hours), ageInHours));
-                        mAgeInMinutesTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_minutes), ageInMinutes));
-                        mAgeInSecondsTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_seconds), ageInSeconds));
-                    }
-                });
-
+        ImageView accessoryView = CommonUtilities.generateCustomAccessoryView(this, R.drawable.ic_edit);
+        accessoryView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showRenameDialog();
             }
         });
-
-        mDisplayDetailsThread.start();
+        mProfileView.setCustomAccessoryView(accessoryView);
 
         if (MainActivity.LOG_D) {
-            Log.d(LOG_TAG, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
+            Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
                     + " milliseconds to show " + ProfileDetailsActivity.class.getSimpleName());
         }
+    }
+
+    private void initUi() {
+        Calendar start;
+        if (LOG_D) start = Calendar.getInstance();
+
+        if (LOG_V) Log.v(LOG_TAG, "Initializing UI");
+
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            if (LOG_I) Log.i(LOG_TAG, "Current thread wasn't on main ui");
+            if (LOG_V) Log.v(LOG_TAG, "Initializing UI by running UI thread");
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    initUi0();
+                }
+            });
+
+        } else {
+            initUi0();
+        }
+
+        if (LOG_D) Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - start.getTimeInMillis()) +
+                " milliseconds to initialize UI");
+    }
+
+    private void initUi0() {
+        mProfileView.setName(mProfile.getName());
+
+        Avatar avatar = mProfile.getAvatar();
+        if (avatar != null) mProfileView.setAvatarImageBitmap(avatar.getBitmap());
+
+        updateAgeRelatedUi();
+    }
+
+    private void updateAgeRelatedUi() {
+        Birthday birthday = mProfile.getBirthday();
+        Age age = mProfile.getAge();
+
+        long[] durationBeforeBirthday = age.getDurationBeforeNextBirthday(Age.MODE_MONTH_DAY);
+        long[] ageYearMonthDay = age.get(Age.MODE_YEAR_MONTH_DAY);
+        long[] ageYearDay = age.get(Age.MODE_YEAR_DAY);
+        long[] ageMonthDay = age.get(Age.MODE_MONTH_DAY);
+        long ageInDays = age.get(Age.MODE_DAY)[Age.DAY];
+        long ageInHours = age.get(Age.MODE_HOUR)[Age.HOUR];
+        long ageInMinutes = age.get(Age.MODE_MINUTES)[Age.MINUTE];
+        long ageInSeconds = age.get(Age.MODE_SECONDS)[Age.SECOND];
+
+        mDobTextView.setText(String.format(Locale.ENGLISH, getString(R.string.long_date_format),
+                birthday.getMonth().getShortName(), birthday.get(Birthday.DAY), birthday.get(Birthday.YEAR)));
+
+        mNextBirthdayInTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_months_days),
+                durationBeforeBirthday[Age.MONTH], durationBeforeBirthday[Age.DAY]));
+
+        mAgeYearMonthDaysTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_years_months_days),
+                ageYearMonthDay[Age.YEAR], ageYearMonthDay[Age.MONTH], ageYearMonthDay[Age.DAY]));
+        mAgeYearDaysTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_years_days),
+                ageYearDay[Age.YEAR], ageYearDay[Age.DAY]));
+        mAgeMonthDaysTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_months_days),
+                ageMonthDay[Age.MONTH], ageMonthDay[Age.DAY]));
+        mAgeInDaysTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_days), ageInDays));
+        mAgeInHoursTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_hours), ageInHours));
+        mAgeInMinutesTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_minutes), ageInMinutes));
+        mAgeInSecondsTextView.setText(String.format(Locale.ENGLISH, getString(R.string.display_seconds), ageInSeconds));
+    }
+
+    private void showRenameDialog() {
+        RenameDialog.newInstance(mProfile).show(getSupportFragmentManager(), getString(R.string.rename_dialog_tag));
     }
 
     @Override
@@ -156,17 +197,26 @@ public class ProfileDetailsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+        updateAgeRelatedUi();
+    }
+
+    @Override
+    public void onProfileNameUpdated(int profileId, String newName, String previousName) {
+        mProfileView.setName(newName);
+    }
+
+    @Override
+    public void onProfileAvatarUpdated(int profileId, Avatar newAvatar, Avatar previousAvatar) {
+        mProfileView.setAvatarImageDrawable(newAvatar.getCircularDrawable());
+    }
+
     private void refresh() {
         if (LOG_V) Log.v(LOG_TAG, "Refreshing profile details");
         if (!mRefreshLayout.isRefreshing()) mRefreshLayout.setRefreshing(true);
 
-        if (mDisplayDetailsThread.isAlive()) {
-            if (LOG_W) Log.w(LOG_TAG, "Thread display details is already running");
-            return;
-        }
-
-        //noinspection CallToThreadRun
-        mDisplayDetailsThread.run(); //No need to start a new thread now, besides, it is illegal to start a thread more than twice
+        initUi0();
         mRefreshLayout.setRefreshing(false);
     }
 
@@ -190,5 +240,4 @@ public class ProfileDetailsActivity extends AppCompatActivity {
         }
         else Log.e(LOG_TAG, "Couldn't get clipboard manager");
     }
-
 }
