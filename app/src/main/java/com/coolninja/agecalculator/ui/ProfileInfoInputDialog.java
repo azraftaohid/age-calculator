@@ -1,4 +1,4 @@
-package com.coolninja.agecalculator.utilities;
+package com.coolninja.agecalculator.ui;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -16,6 +16,7 @@ import android.util.Log;
 import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,6 +28,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.coolninja.agecalculator.R;
+import com.coolninja.agecalculator.utilities.Avatar;
+import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManagerInterface;
 
 import java.io.IOException;
@@ -37,6 +40,8 @@ import java.util.Objects;
 import static android.app.Activity.RESULT_OK;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
+import static com.coolninja.agecalculator.utilities.CommonUtilities.isValidDateFormat;
+import static com.coolninja.agecalculator.utilities.CommonUtilities.isValidName;
 import static com.coolninja.agecalculator.utilities.codes.Request.REQUEST_PICK_AVATAR;
 
 public class ProfileInfoInputDialog extends DialogFragment {
@@ -50,40 +55,50 @@ public class ProfileInfoInputDialog extends DialogFragment {
     private EditText mDobEditText;
     private EditText mNameEditText;
     private ImageView mAvatarImageView;
+    private TextView mErrorTextView;
+    private Button mNextButton;
+
     private String mEnteredName;
     private String mEnteredDateOfBirth;
-    @Nullable private Avatar mAvatar;
     private String mTitle;
-
-    private Calendar mStart;
+    @Nullable
+    private Avatar mAvatar;
     private BirthdayPickerDialog mBirthdayPicker;
+
     private int mRequestCode;
+    private boolean mHasTouchedNameEditTextBefore;
+    private boolean mHasTouchedDobEditTextBefore;
 
-    private ProfileInfoInputDialog() {
-
+    public ProfileInfoInputDialog() {
+        //Required public constructor
+        //This constructor is called when recreating the dialog
+        //e.g on orientation changes
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static ProfileInfoInputDialog newInstance(int requestCode) {
-        final ProfileInfoInputDialog profileInfoInputDialog = new ProfileInfoInputDialog();
+        final ProfileInfoInputDialog infoInputDialog = new ProfileInfoInputDialog();
 
-        profileInfoInputDialog.mRequestCode = requestCode;
+        infoInputDialog.mRequestCode = requestCode;
         Calendar c = Calendar.getInstance();
         BirthdayPickerDialog birthdayPickerDialog = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                profileInfoInputDialog.mDobEditText.setText(String.format(Locale.ENGLISH,
-                        profileInfoInputDialog.getString(R.string.short_date_format),
-                        month + 1, dayOfMonth, year));
-                profileInfoInputDialog.mDobEditText.setSelection(profileInfoInputDialog.mDobEditText.length());
+                String strDob = infoInputDialog.getString(R.string.short_date_format, month + 1, dayOfMonth, year);
+                infoInputDialog.mDobEditText.setText(strDob);
+                infoInputDialog.mDobEditText.requestFocus();
+                infoInputDialog.mDobEditText.setSelection(strDob.length());
             }
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
 
-        profileInfoInputDialog.setBirthdayPicker(birthdayPickerDialog);
+        infoInputDialog.setBirthdayPicker(birthdayPickerDialog);
 
-        return profileInfoInputDialog;
+        return infoInputDialog;
     }
 
-    /** Use this method when asking for input about existing profiles */
+    /**
+     * Invoke this method when asking for input about existing profiles
+     */
     public static ProfileInfoInputDialog newInstance(Context context, int requestCode, String title, @NonNull ProfileManagerInterface.updatable updatable) {
         final ProfileInfoInputDialog infoInputDialog = new ProfileInfoInputDialog();
 
@@ -101,9 +116,10 @@ public class ProfileInfoInputDialog extends DialogFragment {
         infoInputDialog.mBirthdayPicker = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                infoInputDialog.mDobEditText.setText(String.format(Locale.ENGLISH, infoInputDialog.getString(R.string.short_date_format),
-                        month + 1, dayOfMonth, year));
-                infoInputDialog.mDobEditText.setSelection(infoInputDialog.mDobEditText.getText().length());
+                String strDob = infoInputDialog.getString(R.string.short_date_format, month + 1, dayOfMonth, year);
+                infoInputDialog.mDobEditText.setText(strDob);
+                infoInputDialog.mDobEditText.requestFocus();
+                infoInputDialog.mDobEditText.setSelection(strDob.length());
             }
         }, birthday.get(Birthday.YEAR), birthday.get(Birthday.MONTH), birthday.get(Birthday.DAY));
 
@@ -118,7 +134,8 @@ public class ProfileInfoInputDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        if (LOG_D) mStart = Calendar.getInstance();
+        Calendar start;
+        if (LOG_D) start = Calendar.getInstance();
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
@@ -127,7 +144,7 @@ public class ProfileInfoInputDialog extends DialogFragment {
         mDobEditText = root.findViewById(R.id.et_dob);
         mNameEditText = root.findViewById(R.id.et_name);
         mAvatarImageView = root.findViewById(R.id.iv_avatar);
-        final TextView errorMessageTextView = root.findViewById(R.id.tv_invalid_name_input);
+        mErrorTextView = root.findViewById(R.id.tv_error_message);
         ImageView datePickerImageView = root.findViewById(R.id.iv_date_picker);
 
         if (mTitle == null) mTitle = getString(R.string.create_profile);
@@ -174,19 +191,14 @@ public class ProfileInfoInputDialog extends DialogFragment {
             }
         });
 
-        mNameEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+        View.OnFocusChangeListener onFocusChangeListener = new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus && mNameEditText.getText().length() < 1) {
-                    errorMessageTextView.setVisibility(View.VISIBLE);
-                    ((AlertDialog) Objects.requireNonNull(ProfileInfoInputDialog.this.getDialog())).
-                            getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-                }
-
+                if (!hasFocus) ensureInputValidity(v);
             }
-        });
+        };
 
-        mNameEditText.addTextChangedListener(new TextWatcher() {
+        TextWatcher inputWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
@@ -195,31 +207,14 @@ public class ProfileInfoInputDialog extends DialogFragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                boolean isFilled = isValidName(mDobEditText.getText()) && isValidName(s);
-
-                errorMessageTextView.setVisibility(View.GONE);
-                ((AlertDialog) Objects.requireNonNull(ProfileInfoInputDialog.this.getDialog())).
-                        getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(isFilled);
+                ensureInputValidity(null);
             }
-        });
+        };
 
-        mDobEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                ((AlertDialog) Objects.requireNonNull(ProfileInfoInputDialog.this.getDialog())).
-                        getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(isValidDateFormat(s) && isValidName(mNameEditText.getText()));
-            }
-        });
+        mNameEditText.setOnFocusChangeListener(onFocusChangeListener);
+        mNameEditText.addTextChangedListener(inputWatcher);
+        mDobEditText.setOnFocusChangeListener(onFocusChangeListener);
+        mDobEditText.addTextChangedListener(inputWatcher);
 
         mAvatarImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -228,6 +223,10 @@ public class ProfileInfoInputDialog extends DialogFragment {
             }
         });
 
+        if (LOG_D)
+            Log.d(LOG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - start.getTimeInMillis()) +
+                    " milliseconds to show Profile Details Input dialog");
+
         return builder.create();
     }
 
@@ -235,8 +234,10 @@ public class ProfileInfoInputDialog extends DialogFragment {
     public void onResume() {
         super.onResume();
 
-        if (LOG_D) Log.d(LOG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - mStart.getTimeInMillis()) +
-                " milliseconds to show Profile Details Input dialog");
+        mNextButton = ((AlertDialog) Objects.requireNonNull(ProfileInfoInputDialog.this.getDialog()))
+                .getButton(AlertDialog.BUTTON_POSITIVE);
+
+        ensureInputValidity(null);
     }
 
     private void dispatchAvatarPickerIntent() {
@@ -252,34 +253,6 @@ public class ProfileInfoInputDialog extends DialogFragment {
             Log.e(LOG_TAG, "Couldn't find any activity to pick image");
             Toast.makeText(getContext(), getString(R.string.not_resolved_activity), Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private static boolean isValidDateFormat(Editable date) {
-        String[] dates = date.toString().split("/");
-
-        try {
-            int day = Integer.parseInt(dates[1]);
-            int month = Integer.parseInt(dates[0]);
-            int year = Integer.parseInt(dates[2]);
-
-            Month enumMonth = Month.values()[month - 1];
-            if (Age.isLeapYear(year) && month == 2) {
-                if (!(day > 0 && day <= 29)) return false;
-            } else if (!(day > 0 && day <= enumMonth.getNumberOfDays())) {
-                return false;
-            }
-
-            if (!(month <= 12)) return false;
-            if (!(year <= Calendar.getInstance().get(Calendar.YEAR))) return false;
-        } catch (Exception e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static boolean isValidName(Editable name) {
-        return name.length() > 0;
     }
 
     @Override
@@ -319,8 +292,9 @@ public class ProfileInfoInputDialog extends DialogFragment {
             }
         }
 
-        if (LOG_D) Log.d(LOG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - start.getTimeInMillis()) +
-                " milliseconds to process this activity result");
+        if (LOG_D)
+            Log.d(LOG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - start.getTimeInMillis()) +
+                    " milliseconds to process this activity result");
     }
 
     private void setBirthdayPicker(BirthdayPickerDialog birthdayPicker) {
@@ -330,6 +304,39 @@ public class ProfileInfoInputDialog extends DialogFragment {
     private void showBirthdayPicker() {
         mBirthdayPicker.show(Objects.requireNonNull(getActivity()).getSupportFragmentManager(),
                 getString(R.string.birthday_picker_tag));
+    }
+
+    private void ensureInputValidity(@Nullable View viewThatLostFocus) {
+        if (mNextButton == null) {
+            mNextButton = ((AlertDialog) Objects.requireNonNull(ProfileInfoInputDialog.this.getDialog()))
+                    .getButton(DialogInterface.BUTTON_POSITIVE);
+        }
+
+        if (viewThatLostFocus != null && !(mHasTouchedDobEditTextBefore && mHasTouchedNameEditTextBefore)) {
+            if (viewThatLostFocus == mNameEditText) mHasTouchedNameEditTextBefore = true;
+            else if (viewThatLostFocus == mDobEditText) mHasTouchedDobEditTextBefore = true;
+        }
+
+        //These are negatively true
+        boolean isInValidName = !isValidName(mNameEditText.getText());
+        boolean isInValidDate = !isValidDateFormat(mDobEditText.getText());
+
+        if (isInValidName && isInValidDate && mHasTouchedNameEditTextBefore && mHasTouchedDobEditTextBefore) {
+            mErrorTextView.setText(getString(R.string.error_message_invalid_name_and_dob));
+        } else if (isInValidName && mHasTouchedNameEditTextBefore) {
+            mErrorTextView.setText(getString(R.string.error_message_invalid_name));
+        } else if (isInValidDate && mHasTouchedDobEditTextBefore) {
+            mErrorTextView.setText(getString(R.string.error_message_invalid_dob, getString(R.string.set_birthday_hint)));
+        } else {
+            if (mErrorTextView.getVisibility() != View.GONE)
+                mErrorTextView.setVisibility(View.GONE);
+            mNextButton.setEnabled(!(isInValidName || isInValidDate));
+            return;
+        }
+
+        if (mErrorTextView.getVisibility() != View.VISIBLE)
+            mErrorTextView.setVisibility(View.VISIBLE);
+        mNextButton.setEnabled(false);
     }
 
     @Override

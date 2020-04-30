@@ -22,7 +22,6 @@ import com.coolninja.agecalculator.utilities.Age;
 import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.CommonUtilities;
-import com.coolninja.agecalculator.utilities.RenameDialog;
 import com.coolninja.agecalculator.utilities.codes.Error;
 import com.coolninja.agecalculator.utilities.codes.Extra;
 import com.coolninja.agecalculator.utilities.profilemanagement.Profile;

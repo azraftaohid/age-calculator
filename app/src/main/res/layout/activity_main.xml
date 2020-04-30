@@ -10,19 +10,22 @@
         android:id="@+id/tv_empty_profiles"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/empty_profiles"
+        android:layout_marginBottom="8dp"
+        android:text="@string/app_description"
         android:textAppearance="@style/TextAppearance.UIFabric.Caption"
         android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bt_setup_first_profile"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/srl_refresh_profiles"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="visible">
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
 
         <androidx.core.widget.NestedScrollView
@@ -96,5 +99,19 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/ic_action_add" />
+
+    <Button
+        android:id="@+id/bt_setup_first_profile"
+        style="@style/Widget.UIFabric.Button.Borderless"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="showAddProfileDialog"
+        android:text="@string/setup_first_profile_text"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

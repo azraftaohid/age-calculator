@@ -1,4 +1,4 @@
-package com.coolninja.agecalculator.utilities;
+package com.coolninja.agecalculator.ui;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -19,6 +19,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.coolninja.agecalculator.R;
+import com.coolninja.agecalculator.utilities.Birthday;
+import com.coolninja.agecalculator.utilities.CommonUtilities;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManagerInterface;
 
 import java.util.Objects;
@@ -36,7 +38,6 @@ public class ChangeDateOfBirthDialog extends DialogFragment {
 
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static ChangeDateOfBirthDialog newInstance(ProfileManagerInterface.updatable updatable) {
         if (LOG_V) Log.v(LOG_TAG, "Initializing a new instance of change date of birth dialog");
 

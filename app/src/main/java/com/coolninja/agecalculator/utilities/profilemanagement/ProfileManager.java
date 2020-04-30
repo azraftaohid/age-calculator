@@ -7,7 +7,6 @@ import android.util.Log;
 import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
-import com.coolninja.agecalculator.utilities.codes.Error;
 import com.coolninja.agecalculator.utilities.tagmanagement.TagManager;
 
 import org.json.JSONArray;
@@ -21,13 +20,14 @@ import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_I;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
 import static com.coolninja.agecalculator.ui.MainActivity.LOG_W;
+import static com.coolninja.agecalculator.utilities.codes.Error.NOT_FOUND;
 import static com.coolninja.agecalculator.utilities.profilemanagement.Profile.AVATAR_NAME;
 
 public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedListener {
     private static final String LOG_TAG = ProfileManager.class.getSimpleName();
     private static final String LOG_TAG_PERFORMANCE = ProfileManager.class.getSimpleName() + ".Performance";
 
-    private static final String PROFILE_MANAGER_PREF = "com.coolninja.agecalculator.agecalculator.pref.PROFILEMANAGER";
+    private static final String PROFILE_MANAGER_PREF = "com.coolninja.agecalculator.pref.PROFILEMANAGER";
     private static final String JSON_PROFILES_KEY = "com.coolninja.agecalculator.pref.PROFILEMANAGER.JSONPROFILES";
 
     private static int nextProfileId = 1001;
@@ -76,17 +76,17 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
                     else if (LOG_I) Log.i(LOG_TAG, "Profile name found: " + name);
 
                     int year = jsonProfile.getInt(Profile.BIRTH_YEAR);
-                    if (year == Integer.parseInt(context.getString(R.string.default_birth_year)))
+                    if (year == NOT_FOUND)
                         Log.w(LOG_TAG, "Birth year is missing for profile w/ ID: " + id);
                     else if (LOG_I) Log.i(LOG_TAG, "Birth year found: " + year);
 
                     int month = jsonProfile.getInt(Profile.BIRTH_MONTH);
-                    if (month == Integer.parseInt(context.getString(R.string.default_birth_month)))
+                    if (month == NOT_FOUND)
                         Log.w(LOG_TAG, "Birth month is missing for profile w/ ID: " + id);
                     else if (LOG_I) Log.i(LOG_TAG, "Birth month found: " + month);
 
                     int day = jsonProfile.getInt(Profile.BIRTH_DAY);
-                    if (day == Integer.parseInt(context.getString(R.string.default_birth_day)))
+                    if (day == NOT_FOUND)
                         Log.w(LOG_TAG, "Profile birth year is missing for profile w/ ID: " + id);
                     else if (LOG_I) Log.i(LOG_TAG, "Birth day found: " + day);
 
@@ -156,7 +156,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         Calendar startTime;
         if (LOG_D) startTime = Calendar.getInstance();
 
-        if (profile.getId() == Error.NOT_FOUND) { //Precaution step; plan of removal exists
+        if (profile.getId() == NOT_FOUND) { //Precaution step; plan of removal exists
             Log.wtf(LOG_TAG, "Profile ID was not set for the profile w/ name: " + profile.getName());
             ArrayList<Integer> ids = getProfileIds();
             do {
@@ -332,7 +332,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     }
 
     public Profile getProfileById(int id) {
-        if (id == Error.NOT_FOUND) {
+        if (id == NOT_FOUND) {
             Log.w(LOG_TAG, "Profile id is a error code; it sure does not exist");
             return null;
         }
@@ -348,21 +348,26 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     }
 
     public void removeProfile(final int profileId) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Avatar avatar = getProfileById(profileId).getAvatar();
-                if (avatar != null) {
+        if (LOG_V) Log.v(LOG_TAG, "Removing profile w/ ID: " + profileId);
+
+        final Avatar avatar = getProfileById(profileId).getAvatar();
+
+        if (avatar != null) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (LOG_I)
+                        Log.i(LOG_TAG, "A new thread to delete avatar image file has been started");
                     if (!avatar.deleteAvatarFile()) {
                         Log.e(LOG_TAG, "There was an error deleting avatar file of profile w/ ID: " + profileId);
                     }
                 }
-            }
-        }).start();
+            }).start();
+        }
 
         mTagManager.removeAllTagsFromProfile(profileId);
         removeJsonProfile(profileId);
-        Log.i(LOG_TAG, "Removed profile w/ ID: " + profileId + "(" + mProfiles.remove(getProfileById(profileId)) + ")");
+        Log.i(LOG_TAG, "Removed profile w/ ID: " + profileId + " (" + mProfiles.remove(getProfileById(profileId)) + ")");
 
         updatePreference();
 

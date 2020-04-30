@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.ui.ProfileDetailsActivity;
+import com.coolninja.agecalculator.ui.ProfileInfoInputDialog;
 import com.coolninja.agecalculator.utilities.codes.Error;
 import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManager;

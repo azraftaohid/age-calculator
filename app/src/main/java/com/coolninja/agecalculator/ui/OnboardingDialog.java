@@ -1,0 +1,57 @@
+package com.coolninja.agecalculator.ui;
+
+import android.annotation.SuppressLint;
+import android.app.Dialog;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
+
+import com.coolninja.agecalculator.R;
+
+import java.util.Calendar;
+import java.util.Objects;
+
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_D;
+import static com.coolninja.agecalculator.ui.MainActivity.LOG_V;
+
+public class OnboardingDialog extends DialogFragment {
+    private static final String LOG_TAG = OnboardingDialog.class.getSimpleName();
+    private static final String LOG_TAG_PERFORMANCE = LOG_TAG.concat(".performance");
+
+    public OnboardingDialog() {
+
+    }
+
+    static OnboardingDialog newInstance() {
+        return new OnboardingDialog();
+    }
+
+    @NonNull
+    @Override
+    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
+        Calendar start;
+        if (LOG_D) start = Calendar.getInstance();
+
+        if (LOG_V) Log.v(LOG_TAG, "Showing onboarding dialog");
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        @SuppressLint("InflateParams") View root = requireActivity().getLayoutInflater().inflate(R.layout.dialog_onboarding, null);
+
+        root.findViewById(R.id.bt_get_started).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Objects.requireNonNull(OnboardingDialog.this.getDialog()).dismiss();
+            }
+        });
+
+        if (LOG_D)
+            Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - start.getTimeInMillis()) +
+                    " milliseconds to initiate onboarding dialog");
+
+        return builder.setView(root).create();
+    }
+}

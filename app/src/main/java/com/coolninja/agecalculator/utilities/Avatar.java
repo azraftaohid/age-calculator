@@ -39,7 +39,6 @@ public class Avatar {
         mContext = context;
     }
 
-    @SuppressWarnings("WeakerAccess")
     public Avatar(Context context, Bitmap avatarImage) {
         if (LOG_V) Log.v(LOG_TAG, "Creating avatar from bitmap");
 
@@ -210,7 +209,6 @@ public class Avatar {
         return mAvatarBitmap;
     }
 
-    @SuppressWarnings("WeakerAccess")
     public RoundedBitmapDrawable getCircularDrawable() {
         RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(mContext.getResources(), mAvatarBitmap);
         drawable.setCircular(true);
@@ -226,7 +224,7 @@ public class Avatar {
         Calendar start;
         if (LOG_D) start = Calendar.getInstance();
 
-        if (LOG_V) Log.v(LOG_TAG, "Deleting avatar image file");
+        if (LOG_V) Log.v(LOG_TAG, "Attempting to delete avatar image file");
 
         if (mAvatarFileName != null) {
             File file = new File(mContext.getFilesDir(), mAvatarFileName);

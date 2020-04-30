@@ -24,7 +24,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:ems="10"
-        android:hint="@string/dob_format_hint"
+        android:hint="@string/set_birthday_hint"
         android:importantForAutofill="no"
         android:inputType="date" />
 

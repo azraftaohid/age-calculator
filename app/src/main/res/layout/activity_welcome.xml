@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingTop="16dp"
     tools:context=".ui.WelcomeActivity">
 
     <TextView
@@ -11,80 +13,84 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:text="@string/welcome_text"
-        android:textAppearance="@style/TextAppearance.UIFabric.Headline"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textAppearance="@style/TextAppearance.UIFabric.Heading" />
 
-    <LinearLayout
-        android:id="@+id/linearLayout"
+    <TextView
+        android:id="@+id/tv_set_dob"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:text="@string/setup_first_profile_text"
+        android:textAppearance="@style/TextAppearance.UIFabric.Title1" />
+
+    <TextView
+        android:id="@+id/tv_error_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginBottom="16dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:text="@string/error_message_invalid_name_and_dob"
+        android:textAppearance="@style/TextAppearance.UIFabric.Caption"
+        android:textColor="@color/colorError"
+        android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/tv_set_dob"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/set_user_dob_title"
-            android:textAppearance="@style/TextAppearance.UIFabric.Title1" />
+    <EditText
+        android:id="@+id/et_name_first_profile"
+        style="@style/default_edit_text"
+        android:ems="10"
+        android:hint="@string/set_name_hint"
+        android:importantForAutofill="no"
+        android:inputType="textPersonName" />
 
-        <TextView
-            android:id="@+id/tv_chosed_name"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp">
+
+        <EditText
+            android:id="@+id/et_dob_first_profile"
+            style="@style/default_edit_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:onClick="showAddProfileDialog"
-            android:textAppearance="@style/TextAppearance.UIFabric.Body1"
-            android:visibility="gone" />
+            android:layout_marginStart="16dp"
+            android:ems="10"
+            android:hint="@string/set_birthday_hint"
+            android:importantForAutofill="no"
+            android:inputType="date"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/tv_chosed_date"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:onClick="showAddProfileDialog"
-            android:textAppearance="@style/TextAppearance.UIFabric.Body1"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/bt_done"
+        <ImageView
+            android:id="@+id/iv_pick_dob"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"
-            android:onClick="finishWelcomeActivity"
-            android:text="@string/button_lets_go_title"
-            android:visibility="gone" />
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:clickable="true"
+            android:contentDescription="@string/description_pick_date"
+            android:focusable="true"
+            android:onClick="showBirthdayPicker"
+            app:layout_constraintEnd_toEndOf="@+id/et_dob_first_profile"
+            app:layout_constraintTop_toTopOf="@+id/et_dob_first_profile"
+            app:srcCompat="@drawable/ic_calendar" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <Button
-            android:id="@+id/bt_set_dob"
-            style="@style/Widget.UIFabric.Button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"
-            android:onClick="showAddProfileDialog"
-            android:text="@string/set_birthday" />
+    <Button
+        android:id="@+id/bt_done"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
+        android:clickable="true"
+        android:enabled="false"
+        android:focusable="true"
+        android:onClick="finishWelcomeActivity"
+        android:text="@string/lets_go" />
 
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

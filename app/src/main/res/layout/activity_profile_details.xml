@@ -57,7 +57,7 @@
 
                 <TextView
                     style="@style/details_section_title"
-                    android:text="@string/current_age_title" />
+                    android:text="@string/current_age" />
 
                 <TextView
                     android:id="@+id/tv_age_year_month_days"

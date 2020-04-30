@@ -1,11 +1,13 @@
 package com.coolninja.agecalculator.ui;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -20,13 +22,13 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
-import com.coolninja.agecalculator.utilities.ProfileInfoInputDialog;
 import com.coolninja.agecalculator.utilities.ProfileViewsAdapter;
 import com.coolninja.agecalculator.utilities.codes.Request;
 import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManager;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManagerInterface;
 import com.coolninja.agecalculator.utilities.tagmanagement.TagManager;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Calendar;
 
@@ -54,7 +56,10 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     public static final boolean LOG_W = LOG_LEVEL <= Log.WARN;
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
-    private static final String LOG_TAG_PERFORMANCE = LOG_TAG + ".Performance";
+    private static final String LOG_TAG_PERFORMANCE = LOG_TAG + ".performance";
+
+    private static final String DEFAULT_PREFERENCE = "com.coolninja.agecalculator.pref.DEFAULT";
+    private static final String HAS_ONBOARDED_KEY = "com.coolninja.agecalculator.pref.key.HAS_ONBOARDED";
 
     @SuppressWarnings("FieldCanBeLocal")
     private RecyclerView mPinnedProfilesRecyclerView;
@@ -63,6 +68,9 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     private LinearLayout mOthersListView;
     private NestedScrollView mProfilesScrollView;
     private TextView mEmptyProfilesTextView;
+    private Button mSetupButton;
+    private FloatingActionButton mAddProfileFab;
+
     private ProfileManager mProfileManager;
     private ProfileViewsAdapter mPinnedProfileViewsAdapter;
     private ProfileViewsAdapter mOtherProfileViewsAdapter;
@@ -73,12 +81,16 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         Calendar startTime;
         if (LOG_D) startTime = Calendar.getInstance();
 
-        if (!ProfileManager.containsProfilePreference(this)) {
-            launchWelcomeActivity();
-        }
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        SharedPreferences pref = getSharedPreferences(DEFAULT_PREFERENCE, MODE_PRIVATE);
+        if (!pref.getBoolean(HAS_ONBOARDED_KEY, false)) {
+            introduceFirstTimeUser();
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putBoolean(HAS_ONBOARDED_KEY, true);
+            editor.apply();
+        }
 
         mPinnedListView = findViewById(R.id.ll_pinned);
         mOthersListView = findViewById(R.id.ll_others);
@@ -86,7 +98,9 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         mOtherProfilesRecyclerView = findViewById(R.id.rv_other_profiles);
         mProfilesScrollView = findViewById(R.id.sv_profiles);
         mEmptyProfilesTextView = findViewById(R.id.tv_empty_profiles);
+        mSetupButton = findViewById(R.id.bt_setup_first_profile);
         mRefreshProfilesLayout = findViewById(R.id.srl_refresh_profiles);
+        mAddProfileFab = findViewById(R.id.fab_add_profile);
 
         mProfileManager = ProfileManager.getProfileManager(this);
 
@@ -106,6 +120,8 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
                 refreshProfiles();
             }
         });
+
+//        generateDummyProfiles(25);
 
         if (LOG_D) {
             Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
@@ -130,12 +146,8 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * This method should be called to introduce first-time users to the app
-     */
-    void launchWelcomeActivity() {
-        Intent setUpIntent = new Intent(this, WelcomeActivity.class);
-        startActivityForResult(setUpIntent, REQUEST_NEW_PROFILE_INFO);
+    void introduceFirstTimeUser() {
+        OnboardingDialog.newInstance().show(getSupportFragmentManager(), getString(R.string.onboarding_tag));
     }
 
     @Override
@@ -220,10 +232,14 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         }
 
         if (isEmpty) {
+            mAddProfileFab.hide();
             mProfilesScrollView.setVisibility(View.GONE);
             mEmptyProfilesTextView.setVisibility(View.VISIBLE);
+            mSetupButton.setVisibility(View.VISIBLE);
         } else {
+            mAddProfileFab.show();
             mEmptyProfilesTextView.setVisibility(View.GONE);
+            mSetupButton.setVisibility(View.GONE);
             mProfilesScrollView.setVisibility(View.VISIBLE);
         }
 
