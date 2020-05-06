@@ -1,13 +1,8 @@
 package com.coolninja.agecalculator;
 
-import android.util.Log;
-
 import com.coolninja.agecalculator.utilities.Birthday;
 
 import org.junit.Test;
-
-import java.lang.reflect.Array;
-import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;

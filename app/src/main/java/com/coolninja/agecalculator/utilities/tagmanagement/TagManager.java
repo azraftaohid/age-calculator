@@ -18,11 +18,14 @@ import static com.coolninja.agecalculator.ui.MainActivity.LOG_W;
 
 public class TagManager {
     public static final int TAG_PIN = 0;
+    public static final int NO_TAG = -1;
+
     private static final String LOG_TAG = TagManager.class.getSimpleName();
     @SuppressWarnings("unused")
-    private static final String LOG_TAG_PERFORMANCE = TagManager.class.getSimpleName() + ".Performance";
+    private static final String LOG_TAG_PERFORMANCE = LOG_TAG + ".performance";
     private static final String PREF_KEY = "com.coolninja.agecalculator.pref.TAGMANAGER";
     private static final String TAGS_KEY = "com.coolninja.agecalculator.pref.TAGMANAGER.TAGS";
+
     private Context mContext;
     private JSONArray mTaggedProfilesJson = new JSONArray();
     private SharedPreferences mPref;

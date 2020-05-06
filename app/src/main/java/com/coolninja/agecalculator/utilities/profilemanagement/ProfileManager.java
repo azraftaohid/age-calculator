@@ -25,7 +25,7 @@ import static com.coolninja.agecalculator.utilities.profilemanagement.Profile.AV
 
 public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedListener {
     private static final String LOG_TAG = ProfileManager.class.getSimpleName();
-    private static final String LOG_TAG_PERFORMANCE = ProfileManager.class.getSimpleName() + ".Performance";
+    private static final String LOG_TAG_PERFORMANCE = ProfileManager.class.getSimpleName() + ".performance";
 
     private static final String PROFILE_MANAGER_PREF = "com.coolninja.agecalculator.pref.PROFILEMANAGER";
     private static final String JSON_PROFILES_KEY = "com.coolninja.agecalculator.pref.PROFILEMANAGER.JSONPROFILES";
@@ -62,9 +62,6 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
                     Log.v(LOG_TAG, "Retrieved json profiles array from preference\n" + manager.mJsonProfiles.toString(4));
 
                 for (int i = 0; i < manager.mJsonProfiles.length(); i++) {
-                    Calendar RetrieveOneStartTime;
-                    if (LOG_D) RetrieveOneStartTime = Calendar.getInstance();
-
                     JSONObject jsonProfile = manager.mJsonProfiles.getJSONObject(i);
 
                     int id = jsonProfile.getInt(Profile.ID);
@@ -107,11 +104,6 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
                     if (avatar != null) profile.setAvatar(avatar);
 
                     manager.mProfiles.add(profile);
-
-                    if (LOG_D) {
-                        Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - RetrieveOneStartTime.getTimeInMillis())
-                                + " milliseconds to retrieve one profile from json array");
-                    }
 
                 }
             } catch (JSONException e) {
@@ -345,6 +337,10 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         Log.w(LOG_TAG, "No profile found with the profile id: " + id);
 
         return null;
+    }
+
+    public TagManager getTagManager() {
+        return mTagManager;
     }
 
     public void removeProfile(final int profileId) {

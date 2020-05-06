@@ -21,7 +21,7 @@
     <string name="name">Name</string>
     <string name="invalid_name_input">Please choose a valid name</string>
     <string name="pinned">Pinned</string>
-    <string name="other_profiles">Others</string>
+    <string name="others">Others</string>
     <string name="default_name">-1</string>
     <string name="rename">Rename</string>
     <string name="rename_long">Rename to</string>

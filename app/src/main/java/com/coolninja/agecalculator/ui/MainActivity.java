@@ -8,14 +8,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.widget.NestedScrollView;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -23,14 +20,16 @@ import com.coolninja.agecalculator.R;
 import com.coolninja.agecalculator.utilities.Avatar;
 import com.coolninja.agecalculator.utilities.Birthday;
 import com.coolninja.agecalculator.utilities.ProfileViewsAdapter;
+import com.coolninja.agecalculator.utilities.ProfilesSection;
 import com.coolninja.agecalculator.utilities.codes.Request;
 import com.coolninja.agecalculator.utilities.profilemanagement.Profile;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManager;
 import com.coolninja.agecalculator.utilities.profilemanagement.ProfileManagerInterface;
-import com.coolninja.agecalculator.utilities.tagmanagement.TagManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 import static com.coolninja.agecalculator.utilities.codes.Error.NOT_FOUND;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_AVATAR_FILE_NAME;
@@ -39,13 +38,15 @@ import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_MONTH;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_NAME;
 import static com.coolninja.agecalculator.utilities.codes.Extra.EXTRA_YEAR;
 import static com.coolninja.agecalculator.utilities.codes.Request.REQUEST_NEW_PROFILE_INFO;
+import static com.coolninja.agecalculator.utilities.tagmanagement.TagManager.NO_TAG;
+import static com.coolninja.agecalculator.utilities.tagmanagement.TagManager.TAG_PIN;
 
 public class MainActivity extends AppCompatActivity implements ProfileManagerInterface.onProfileUpdatedListener,
         ProfileManagerInterface.onProfilePinnedListener, ProfileManagerInterface.onProfileAddedListener,
         ProfileInfoInputDialog.OnProfileInfoSubmitListener, ProfileManagerInterface.onProfileRemovedListener {
 
     //Change log level to limit logging scopes
-    private static final int LOG_LEVEL = Log.VERBOSE;
+    private static final int LOG_LEVEL = Log.DEBUG;
     @SuppressWarnings("ConstantConditions")
     public static final boolean LOG_V = LOG_LEVEL <= Log.DEBUG;
     @SuppressWarnings("ConstantConditions")
@@ -62,18 +63,13 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     private static final String HAS_ONBOARDED_KEY = "com.coolninja.agecalculator.pref.key.HAS_ONBOARDED";
 
     @SuppressWarnings("FieldCanBeLocal")
-    private RecyclerView mPinnedProfilesRecyclerView;
-    private RecyclerView mOtherProfilesRecyclerView;
-    private LinearLayout mPinnedListView;
-    private LinearLayout mOthersListView;
-    private NestedScrollView mProfilesScrollView;
+    private RecyclerView mProfilesRecyclerView;
     private TextView mEmptyProfilesTextView;
     private Button mSetupButton;
     private FloatingActionButton mAddProfileFab;
 
     private ProfileManager mProfileManager;
-    private ProfileViewsAdapter mPinnedProfileViewsAdapter;
-    private ProfileViewsAdapter mOtherProfileViewsAdapter;
+    private ProfileViewsAdapter mProfileViewsAdapter;
     private SwipeRefreshLayout mRefreshProfilesLayout;
 
     @Override
@@ -92,11 +88,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
             editor.apply();
         }
 
-        mPinnedListView = findViewById(R.id.ll_pinned);
-        mOthersListView = findViewById(R.id.ll_others);
-        mPinnedProfilesRecyclerView = findViewById(R.id.rv_pinned_profiles);
-        mOtherProfilesRecyclerView = findViewById(R.id.rv_other_profiles);
-        mProfilesScrollView = findViewById(R.id.sv_profiles);
+        mProfilesRecyclerView = findViewById(R.id.rv_profiles);
         mEmptyProfilesTextView = findViewById(R.id.tv_empty_profiles);
         mSetupButton = findViewById(R.id.bt_setup_first_profile);
         mRefreshProfilesLayout = findViewById(R.id.srl_refresh_profiles);
@@ -104,13 +96,8 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
         mProfileManager = ProfileManager.getProfileManager(this);
 
-        mPinnedProfileViewsAdapter = new ProfileViewsAdapter(this, mProfileManager, mProfileManager.getPinnedProfiles());
-        mPinnedProfilesRecyclerView.setAdapter(mPinnedProfileViewsAdapter);
-        mPinnedProfilesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        mOtherProfileViewsAdapter = new ProfileViewsAdapter(this, mProfileManager, mProfileManager.getOtherProfiles());
-        mOtherProfilesRecyclerView.setAdapter(mOtherProfileViewsAdapter);
-        mOtherProfilesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        initializeProfileViewsAdapter(false);
+        mProfilesRecyclerView.setAdapter(mProfileViewsAdapter);
 
         synchronizeVisibleStatus();
 
@@ -121,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
             }
         });
 
-//        generateDummyProfiles(25);
+//        generateDummyProfiles(125);
 
         if (LOG_D) {
             Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
@@ -215,32 +202,44 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
         boolean isEmpty = true;
 
-        int pinnedItemCounts = mPinnedProfileViewsAdapter.getItemCount();
+        ArrayList<Profile> pinnedProfiles = mProfileManager.getPinnedProfiles();
+        ArrayList<Profile> otherProfiles = mProfileManager.getOtherProfiles();
+
+        int pinnedItemCounts = pinnedProfiles.size();
         if (LOG_V) Log.v(LOG_TAG, "Pinned items: " + pinnedItemCounts);
-        if (pinnedItemCounts == 0) mPinnedListView.setVisibility(View.GONE);
+        if (pinnedItemCounts == 0) {
+            if (mProfileViewsAdapter.containsSection(TAG_PIN))
+                mProfileViewsAdapter.removeSection(TAG_PIN);
+        }
         else {
-            mPinnedListView.setVisibility(View.VISIBLE);
+            if (!mProfileViewsAdapter.containsSection(TAG_PIN))
+                mProfileViewsAdapter.addSection(TAG_PIN,
+                        new ProfilesSection(pinnedProfiles, getString(R.string.pinned)));
             isEmpty = false;
         }
 
-        int otherItemCounts = mOtherProfileViewsAdapter.getItemCount();
+        int otherItemCounts = otherProfiles.size();
         if (LOG_V) Log.v(LOG_TAG, "Other items: " + otherItemCounts);
-        if (otherItemCounts == 0) mOthersListView.setVisibility(View.GONE);
+        if (otherItemCounts == 0) {
+            if (mProfileViewsAdapter.containsSection(NO_TAG))
+                mProfileViewsAdapter.removeSection(NO_TAG);
+        }
         else {
-            mOthersListView.setVisibility(View.VISIBLE);
+            if (!mProfileViewsAdapter.containsSection(NO_TAG))
+                mProfileViewsAdapter.addSection(NO_TAG, new ProfilesSection(otherProfiles, getString(R.string.others)));
             isEmpty = false;
         }
 
         if (isEmpty) {
+            mProfilesRecyclerView.setVisibility(View.GONE);
             mAddProfileFab.hide();
-            mProfilesScrollView.setVisibility(View.GONE);
             mEmptyProfilesTextView.setVisibility(View.VISIBLE);
             mSetupButton.setVisibility(View.VISIBLE);
         } else {
-            mAddProfileFab.show();
             mEmptyProfilesTextView.setVisibility(View.GONE);
             mSetupButton.setVisibility(View.GONE);
-            mProfilesScrollView.setVisibility(View.VISIBLE);
+            mProfilesRecyclerView.setVisibility(View.VISIBLE);
+            mAddProfileFab.show();
         }
 
         if (LOG_D) {
@@ -276,39 +275,34 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
     @Override
     public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
-        if (TagManager.getTaggedIds(TagManager.TAG_PIN).contains(profileId)) {
-            mPinnedProfileViewsAdapter.onProfileDateOfBirthUpdated(profileId, newBirthYear, newBirthMonth, newBirthDay, previousBirthDay);
-        } else {
-            mOtherProfileViewsAdapter.onProfileDateOfBirthUpdated(profileId, newBirthYear, newBirthMonth, newBirthDay, previousBirthDay);
-        }
+        mProfileViewsAdapter.onProfileDateOfBirthUpdated(profileId, newBirthYear, newBirthMonth, newBirthDay, previousBirthDay);
     }
 
     @Override
     public void onProfileNameUpdated(int profileId, String newName, String previousName) {
-        if (TagManager.getTaggedIds(TagManager.TAG_PIN).contains(profileId)) {
-            mPinnedProfileViewsAdapter.onProfileNameUpdated(profileId, newName, previousName);
-        } else {
-            mOtherProfileViewsAdapter.onProfileNameUpdated(profileId, newName, previousName);
-        }
+        mProfileViewsAdapter.onProfileNameUpdated(profileId, newName, previousName);
     }
 
     @Override
     public void onProfileAvatarUpdated(int profileId, Avatar newAvatar, Avatar previousAvatar) {
-        if (TagManager.getTaggedIds(TagManager.TAG_PIN).contains(profileId))
-            mPinnedProfileViewsAdapter.onProfileAvatarUpdated(profileId, newAvatar, previousAvatar);
-        else
-            mOtherProfileViewsAdapter.onProfileAvatarUpdated(profileId, newAvatar, previousAvatar);
+        mProfileViewsAdapter.onProfileAvatarUpdated(profileId, newAvatar, previousAvatar);
     }
 
     @Override
     public void onProfilePinned(int profileId, boolean isPinned) {
-        Profile profile = mProfileManager.getProfileById(profileId);
-        if (isPinned) {
-            mOtherProfileViewsAdapter.removeProfile(profileId);
-            mPinnedProfileViewsAdapter.addProfile(0, profile);
+        int sectionKey = isPinned ? TAG_PIN : NO_TAG;
+
+        if (mProfileViewsAdapter.containsSection(sectionKey)) {
+            mProfileViewsAdapter.moveProfile(profileId, sectionKey, 0);
         } else {
-            mPinnedProfileViewsAdapter.removeProfile(profileId);
-            mOtherProfileViewsAdapter.addProfile(0, profile);
+            ProfilesSection section;
+            if (isPinned)
+                section = new ProfilesSection(new ArrayList<Profile>(), getString(R.string.pinned));
+            else
+                section = new ProfilesSection(new ArrayList<Profile>(), getString(R.string.others));
+
+            mProfileViewsAdapter.addSection(sectionKey, section);
+            mProfileViewsAdapter.moveProfile(profileId, sectionKey, 0);
         }
 
         synchronizeVisibleStatus();
@@ -316,27 +310,48 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
     @Override
     public void onProfileAdded(Profile profile) {
-        mOtherProfileViewsAdapter.addProfile(profile);
+        if (mProfileViewsAdapter.containsSection(NO_TAG))
+            mProfileViewsAdapter.addProfile(NO_TAG, profile);
+        else
+            mProfileViewsAdapter.addSection(NO_TAG, new ProfilesSection(mProfileManager.getOtherProfiles(),
+                    getString(R.string.others)));
+
         synchronizeVisibleStatus();
-        mOtherProfilesRecyclerView.smoothScrollToPosition(mOtherProfileViewsAdapter.getItemCount());
+        mProfilesRecyclerView.smoothScrollToPosition(mProfileViewsAdapter.getItemCount() - 1);
     }
 
     @Override
     public void onProfileRemoved(int profileId) {
-        if (TagManager.getTaggedIds(TagManager.TAG_PIN).contains(profileId)) {
-            mPinnedProfileViewsAdapter.removeProfile(profileId);
-        } else {
-            mOtherProfileViewsAdapter.removeProfile(profileId);
-        }
-
+        mProfileViewsAdapter.removeProfile(profileId);
         synchronizeVisibleStatus();
     }
 
     private void refreshProfiles() {
         if (!mRefreshProfilesLayout.isRefreshing()) mRefreshProfilesLayout.setRefreshing(true);
-        mPinnedProfileViewsAdapter.refresh();
-        mOtherProfileViewsAdapter.refresh();
+
+        initializeProfileViewsAdapter(true);
+        mProfilesRecyclerView.setAdapter(mProfileViewsAdapter);
 
         mRefreshProfilesLayout.setRefreshing(false);
+    }
+
+    private void initializeProfileViewsAdapter(boolean fromScratch) {
+        if (fromScratch) mProfileManager = ProfileManager.getProfileManager(this);
+
+        mProfileViewsAdapter = new ProfileViewsAdapter(this, mProfileManager, generateSectionMap());
+        mProfileViewsAdapter.setSectionOrder(new int[]{TAG_PIN, NO_TAG});
+    }
+
+    private HashMap<Integer, ProfilesSection> generateSectionMap() {
+        ArrayList<Profile> pinnedProfiles = mProfileManager.getPinnedProfiles();
+        ArrayList<Profile> otherProfiles = mProfileManager.getOtherProfiles();
+
+        HashMap<Integer, ProfilesSection> sectionMap = new HashMap<>(2);
+        if (pinnedProfiles.size() > 0)
+            sectionMap.put(TAG_PIN, new ProfilesSection(mProfileManager.getPinnedProfiles(), getString(R.string.pinned)));
+        if (otherProfiles.size() > 0)
+            sectionMap.put(NO_TAG, new ProfilesSection(mProfileManager.getOtherProfiles(), getString(R.string.others)));
+
+        return sectionMap;
     }
 }

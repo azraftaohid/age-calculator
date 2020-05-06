@@ -28,60 +28,11 @@
         app:layout_constraintTop_toTopOf="parent">
 
 
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/sv_profiles"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:visibility="visible">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_profiles"
+            style="@style/profiles_section"
+            tools:visibility="gone" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:divider="@drawable/ms_row_divider"
-                android:dividerPadding="4dp"
-                android:orientation="vertical"
-                android:showDividers="middle"
-                android:visibility="visible">
-
-                <LinearLayout
-                    android:id="@+id/ll_pinned"
-                    style="@style/profile_list_container">
-
-                    <TextView
-                        android:id="@+id/tv_pinned_profiles"
-                        style="@style/profile_list_title"
-                        android:text="@string/pinned" />
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rv_pinned_profiles"
-                        style="@style/profiles_container">
-
-                    </androidx.recyclerview.widget.RecyclerView>
-
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/ll_others"
-                    style="@style/profile_list_container">
-
-                    <TextView
-                        android:id="@+id/tv_other_profiles"
-                        style="@style/profile_list_title"
-                        android:text="@string/other_profiles" />
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rv_other_profiles"
-                        style="@style/profiles_container">
-
-                    </androidx.recyclerview.widget.RecyclerView>
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-        </androidx.core.widget.NestedScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

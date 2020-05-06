@@ -7,7 +7,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 enum Tag {
-    PIN("pin");
+    PIN("Pinned");
 
     static final String TAG_NAME_KEY = "tag.NAME";
     static final String PROFILE_IDS_KEY = "tag.PROFILE_IDS";
