@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:dist="http://schemas.android.com/apk/distribution"
-    package="com.coolninja.agecalculator">
+    package="thegoodcompany.aetate">
 
     <dist:module dist:instant="true" />
 
@@ -13,19 +13,20 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ui.ProfileDetailsActivity"
+            android:name="thegoodcompany.aetate.ui.ProfileDetailsActivity"
             android:label="@string/details_activity_name"
-            android:parentActivityName=".ui.MainActivity">
-            <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ui.MainActivity"/>
+            android:parentActivityName="thegoodcompany.aetate.ui.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="thegoodcompany.aetate.ui.MainActivity" />
         </activity>
-        <activity android:name=".ui.MainActivity">
+        <activity android:name="thegoodcompany.aetate.ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.WelcomeActivity" />
+        <activity android:name="thegoodcompany.aetate.ui.WelcomeActivity" />
     </application>
 
 </manifest>

@@ -2,11 +2,88 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Base.Theme.UIFabric">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">?attr/uifabricBackgroundColor</item>
+        <item name="android:background">@null</item>
+    </style>
 
+    <style name="details_section_container">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="profile_sections_container">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:divider">@drawable/ms_row_divider</item>
+        <item name="android:dividerPadding">4dp</item>
+        <item name="android:showDividers">middle</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="profiles_section_title">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+        <item name="android:textAppearance">
+            @style/TextAppearance.UIFabric.ListSubHeaderTitle.Tertiary
+        </item>
+        <item name="android:visibility">visible</item>
+    </style>
+
+    <style name="profiles_section">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="layoutManager">androidx.recyclerview.widget.LinearLayoutManager</item>
+    </style>
+
+    <style name="details_section_title">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+        <item name="android:textAppearance">
+            @style/TextAppearance.UIFabric.ListSubHeaderTitle.Tertiary
+        </item>
+    </style>
+
+    <style name="details_section_property">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:onClick">copyValue"</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.UIFabric.Body1</item>
+    </style>
+
+    <style name="profile_view">
+        <item name="subtitle">null</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:longClickable">true</item>
+    </style>
+
+    <style name="default_edit_text">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginEnd">16dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+    </style>
+
+    <style name="TextAppearance.Error" parent="TextAppearance.UIFabric.Caption">
+        <item name="android:textColor">@color/colorError</item>
     </style>
 
 </resources>
