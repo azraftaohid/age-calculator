@@ -5,7 +5,7 @@
     android:id="@+id/root_view_profile_details"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.coolninja.agecalculator.ui.ProfileDetailsActivity">
+    tools:context="thegoodcompany.aetate.ui.ProfileDetailsActivity">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/srl_refresh_details"

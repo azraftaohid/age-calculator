@@ -6,8 +6,7 @@
     <string name="setup_first_profile_text">Setup Your First Profile</string>
     <string name="set_birthday">Set Birthday</string>
     <string name="current_age">Age</string>
-    <string name="user_pref_key">com.coolninja.agecalculator.agecalculator.user.pref</string>
-    <string name="birthday_picker_tag">com.coolninja.agecalculator.tag.birthdaypicker</string>
+    <string name="birthday_picker_tag">thegoodcompany.aetate.tag.birthdaypicker</string>
     <string name="lets_go">Let\'s Go!</string>
     <string name="long_date_format">%s %d, %d</string>
     <string name="display_years_days">%d Years, %d Days.</string>
@@ -17,7 +16,7 @@
     <string name="short_date_format">%d/%d/%d</string>
     <string name="cancel">Cancel</string>
     <string name="set_name_hint">Enter a Name</string>
-    <string name="add_profile_dialog_tag">com.coolninja.agecalculator.tag.addprofile</string>
+    <string name="add_profile_dialog_tag">thegoodcompany.aetate.tag.addprofile</string>
     <string name="name">Name</string>
     <string name="invalid_name_input">Please choose a valid name</string>
     <string name="pinned">Pinned</string>
@@ -30,10 +29,10 @@
     <string name="unpin">Unpin</string>
     <string name="change_date_of_birth">Change Date of Birth</string>
     <string name="ok">OK</string>
-    <string name="rename_dialog_tag">com.coolninja.agecalculator.tag.rename</string>
-    <string name="change_dob_dialog_tag">com.coolninja.agecalculator.tag.change_dob</string>
-    <string name="setup_dialog_tag">com.coolninja.agecalculator.tag.setup_dialog</string>
-    <string name="onboarding_tag">com.coolninja.agecalculator.tag.onboarding</string>
+    <string name="rename_dialog_tag">thegoodcompany.aetate.tag.rename</string>
+    <string name="change_dob_dialog_tag">thegoodcompany.aetate.tag.change_dob</string>
+    <string name="setup_dialog_tag">thegoodcompany.aetate.tag.setup_dialog</string>
+    <string name="onboarding_tag">thegoodcompany.aetate.tag.onboarding</string>
     <string name="delete">Remove</string>
     <string name="date_of_birth">Date of Birth</string>
     <string name="next_birth_day_in">Next Birthday in</string>
@@ -52,11 +51,12 @@
     <string name="description_choose_avatar">Pickup an avatar</string>
     <string name="not_resolved_activity">No Application was Found to Complete the Action</string>
     <string name="modify">Modify</string>
-    <string name="modify_profile_dialog_tag">com.coolninja.agecalculator.tag.modify</string>
+    <string name="modify_profile_dialog_tag">thegoodcompany.aetate.tag.modify</string>
     <string name="submit">Submit</string>
     <string name="error_message_invalid_name">Please choose a valid name</string>
     <string name="error_message_invalid_dob">Please choose a date in this format: %s</string>
     <string name="error_message_invalid_name_and_dob">Please choose a valid name and date</string>
     <string name="description_launcher_icon">App icon</string>
     <string name="get_started">Get Started</string>
+    <string name="crash">Crash</string>
 </resources>
