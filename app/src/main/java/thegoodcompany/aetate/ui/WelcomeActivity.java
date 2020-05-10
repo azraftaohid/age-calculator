@@ -44,7 +44,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Calendar start;
+        Calendar start = null;
         if (LOG_D) start = Calendar.getInstance();
 
         if (LOG_V) Log.v(LOG_TAG, "Initializing Welcome Activity");

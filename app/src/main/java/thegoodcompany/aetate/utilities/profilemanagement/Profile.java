@@ -11,7 +11,7 @@ import org.json.JSONObject;
 import thegoodcompany.aetate.utilities.Age;
 import thegoodcompany.aetate.utilities.Avatar;
 import thegoodcompany.aetate.utilities.Birthday;
-import thegoodcompany.aetate.utilities.codes.Error;
+import thegoodcompany.aetate.utilities.Error;
 
 import static thegoodcompany.aetate.ui.MainActivity.LOG_V;
 
@@ -25,7 +25,7 @@ public class Profile implements ProfileManagerInterface.updatable {
 
     private static final String LOG_TAG = Profile.class.getSimpleName();
     @SuppressWarnings("UnusedAssignment")
-    private int mId = Error.NOT_FOUND; //Precaution step; in case constructor did not set id
+    private int mId = Error.NOT_FOUND.getCode(); //Precaution step; in case newly-added constructors did not set id
     private Birthday mDateOfBirth;
 
     private String mName;

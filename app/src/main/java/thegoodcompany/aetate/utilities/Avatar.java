@@ -7,6 +7,7 @@ import android.graphics.ImageDecoder;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
@@ -39,7 +40,7 @@ public class Avatar {
         mContext = context;
     }
 
-    public Avatar(Context context, Bitmap avatarImage) {
+    public Avatar(Context context, @NonNull Bitmap avatarImage) {
         if (LOG_V) Log.v(LOG_TAG, "Creating avatar from bitmap");
 
         mContext = context;
@@ -108,7 +109,7 @@ public class Avatar {
     }
 
     public void storePermanently() {
-        Calendar start;
+        Calendar start = null;
         if (LOG_D) start = Calendar.getInstance();
 
         if (LOG_V) Log.v(LOG_TAG, "Storing avatar image permanently");
@@ -221,7 +222,7 @@ public class Avatar {
     }
 
     public boolean deleteAvatarFile() {
-        Calendar start;
+        Calendar start = null;
         if (LOG_D) start = Calendar.getInstance();
 
         if (LOG_V) Log.v(LOG_TAG, "Attempting to delete avatar image file");

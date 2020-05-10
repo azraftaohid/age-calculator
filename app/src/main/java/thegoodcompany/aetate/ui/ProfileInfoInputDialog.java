@@ -1,15 +1,22 @@
 package thegoodcompany.aetate.ui;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -25,7 +32,10 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
+
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -40,8 +50,10 @@ import thegoodcompany.aetate.utilities.profilemanagement.ProfileManagerInterface
 import static android.app.Activity.RESULT_OK;
 import static thegoodcompany.aetate.ui.MainActivity.LOG_D;
 import static thegoodcompany.aetate.ui.MainActivity.LOG_V;
+import static thegoodcompany.aetate.ui.MainActivity.LOG_W;
 import static thegoodcompany.aetate.utilities.CommonUtilities.isValidDateFormat;
 import static thegoodcompany.aetate.utilities.CommonUtilities.isValidName;
+import static thegoodcompany.aetate.utilities.codes.Request.REQUEST_PICKING_AVATAR_PERMISSIONS;
 import static thegoodcompany.aetate.utilities.codes.Request.REQUEST_PICK_AVATAR;
 
 public class ProfileInfoInputDialog extends DialogFragment {
@@ -75,7 +87,6 @@ public class ProfileInfoInputDialog extends DialogFragment {
         //e.g on orientation changes
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static ProfileInfoInputDialog newInstance(int requestCode) {
         final ProfileInfoInputDialog infoInputDialog = new ProfileInfoInputDialog();
 
@@ -134,7 +145,7 @@ public class ProfileInfoInputDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Calendar start;
+        Calendar start = null;
         if (LOG_D) start = Calendar.getInstance();
 
         final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -194,7 +205,12 @@ public class ProfileInfoInputDialog extends DialogFragment {
         View.OnFocusChangeListener onFocusChangeListener = new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus) ensureInputValidity(v);
+                if (!hasFocus) {
+                    if (LOG_D) Log.d(LOG_TAG, "View w/ ID: " + v.getId() + " lost focus");
+                    ensureInputValidity(v);
+                } else {
+                    if (LOG_D) Log.d(LOG_TAG, "View w/ ID: " + v.getId() + " gained focus");
+                }
             }
         };
 
@@ -241,25 +257,53 @@ public class ProfileInfoInputDialog extends DialogFragment {
     }
 
     private void dispatchAvatarPickerIntent() {
-        Intent pickAvatarIntent = new Intent();
-        pickAvatarIntent.setType(TYPE_IMAGE);
-        pickAvatarIntent.setAction(Intent.ACTION_GET_CONTENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Intent pickAvatarIntent = new Intent();
+            pickAvatarIntent.setType(TYPE_IMAGE);
+            pickAvatarIntent.setAction(Intent.ACTION_GET_CONTENT);
 
-        Intent chooserIntent = Intent.createChooser(pickAvatarIntent, "Choose from");
+            Intent chooserIntent = Intent.createChooser(pickAvatarIntent, "Choose from");
 
-        if (chooserIntent.resolveActivity(Objects.requireNonNull(getActivity()).getPackageManager()) != null)
-            startActivityForResult(chooserIntent, REQUEST_PICK_AVATAR);
-        else {
-            Log.e(LOG_TAG, "Couldn't find any activity to pick image");
-            Toast.makeText(getContext(), getString(R.string.not_resolved_activity), Toast.LENGTH_SHORT).show();
+            if (chooserIntent.resolveActivity(Objects.requireNonNull(getActivity()).getPackageManager()) != null)
+                startActivityForResult(chooserIntent, REQUEST_PICK_AVATAR);
+            else {
+                Log.e(LOG_TAG, "Couldn't find any activity to pick image");
+                Toast.makeText(getContext(), getString(R.string.not_resolved_activity), Toast.LENGTH_SHORT).show();
+            }
+
+        } else {
+            if (ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    ExplanationDialog.newInstance(getString(R.string.explanation_permission_read_external_storage), new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                            requestPermissionsRequiredForPickingAvatar();
+                        }
+                    }).show(getActivity().getSupportFragmentManager(), getString(R.string.explanation_dialog_tag));
+
+                } else {
+                    requestPermissionsRequiredForPickingAvatar();
+                }
+
+                return;
+            }
+
+            Intent pickAvatarIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            if (pickAvatarIntent.resolveActivity(Objects.requireNonNull(getActivity()).getPackageManager()) != null) {
+                startActivityForResult(pickAvatarIntent, REQUEST_PICK_AVATAR);
+            } else {
+                Log.e(LOG_TAG, "Couldn't find any app to pick image");
+                Toast.makeText(getContext(), getString(R.string.not_resolved_activity), Toast.LENGTH_SHORT).show();
+            }
         }
+
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Calendar start;
+        Calendar start = null;
         if (LOG_D) {
             start = Calendar.getInstance();
         }
@@ -279,10 +323,54 @@ public class ProfileInfoInputDialog extends DialogFragment {
                 Bitmap avatarBitmap = null;
 
                 try {
-                    avatarBitmap = Objects.requireNonNull(getActivity()).getContentResolver().loadThumbnail(avatarUri, new Size(512, 512), null);
-                    if (LOG_V) Log.v(LOG_TAG, "Received avatar bitmap thumbnail");
-                } catch (IOException e) {
+                    ContentResolver resolver = Objects.requireNonNull(Objects.requireNonNull(getContext()).getApplicationContext()).getContentResolver();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        avatarBitmap = resolver.loadThumbnail(avatarUri, new Size(96, 96), null);
+
+                    } else {
+                        String[] projection = new String[]{
+                                MediaStore.Images.ImageColumns._ID
+                        };
+
+                        //We're passing an Uri that points to only one file
+                        //no need to pass selection, selectionArgs and sortOrder arguments
+                        try (Cursor cursor = resolver.query(avatarUri, projection, null, null, null)) {
+                            if (cursor == null) {
+                                Log.e(LOG_TAG, "Returned cursor was null");
+                                Toast.makeText(getContext(), getString(R.string.no_permission_or_moved), Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+
+                            if (cursor.getCount() > 1 || cursor.getCount() == 0) {
+                                Log.wtf(LOG_TAG, "Cursor found more than one item or none at all; proceeding w/ the first one");
+                            }
+
+                            cursor.moveToFirst();
+                            int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns._ID);
+                            long id = cursor.getLong(idColumn);
+
+                            //noinspection deprecation
+                            avatarBitmap = MediaStore.Images.Thumbnails.getThumbnail(resolver, id, MediaStore.Images.Thumbnails.MINI_KIND, null);
+                        } catch (CursorIndexOutOfBoundsException e) {
+                            Log.e(LOG_TAG, "Couldn't point cursor to the specified image");
+                            FirebaseCrashlytics.getInstance().recordException(e);
+                        }
+
+                    }
+
+                    if (avatarBitmap != null) {
+                        if (LOG_V) Log.v(LOG_TAG, "Received avatar bitmap thumbnail");
+                    } else {
+                        Log.e(LOG_TAG, "Couldn't load avatar bitmap");
+                        Toast.makeText(getContext(), getString(R.string.error_message_default), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                } catch (IOException | NoSuchMethodError | IllegalArgumentException e) {
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     e.printStackTrace();
+                    Toast.makeText(getContext(), getString(R.string.error_message_default), Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
                 mAvatar = new Avatar(getContext(), avatarBitmap);
@@ -295,6 +383,24 @@ public class ProfileInfoInputDialog extends DialogFragment {
         if (LOG_D)
             Log.d(LOG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - start.getTimeInMillis()) +
                     " milliseconds to process this activity result");
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (LOG_D) Log.d(LOG_TAG, "Reached on request permissions result");
+
+        if (requestCode == REQUEST_PICKING_AVATAR_PERMISSIONS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (LOG_V) Log.v(LOG_TAG, "Request granted, dispatching avatar picker intent");
+                dispatchAvatarPickerIntent();
+            } else {
+                if (LOG_W) Log.w(LOG_TAG, "User denied storage access permission");
+            }
+        }
+    }
+
+    private void requestPermissionsRequiredForPickingAvatar() {
+        requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_PICKING_AVATAR_PERMISSIONS);
     }
 
     private void setBirthdayPicker(BirthdayPickerDialog birthdayPicker) {

@@ -27,7 +27,7 @@ import thegoodcompany.aetate.utilities.Age;
 import thegoodcompany.aetate.utilities.Avatar;
 import thegoodcompany.aetate.utilities.Birthday;
 import thegoodcompany.aetate.utilities.CommonUtilities;
-import thegoodcompany.aetate.utilities.codes.Error;
+import thegoodcompany.aetate.utilities.Error;
 import thegoodcompany.aetate.utilities.codes.Extra;
 import thegoodcompany.aetate.utilities.profilemanagement.Profile;
 import thegoodcompany.aetate.utilities.profilemanagement.ProfileManager;
@@ -40,6 +40,9 @@ import static thegoodcompany.aetate.ui.MainActivity.LOG_V;
 public class ProfileDetailsActivity extends AppCompatActivity implements ProfileManagerInterface.onProfileUpdatedListener {
     private final static String LOG_TAG = ProfileDetailsActivity.class.getSimpleName();
     private final static String LOG_TAG_PERFORMANCE = LOG_TAG + ".performance";
+
+    private static final int NOT_FOUND = Error.NOT_FOUND.getCode();
+    private static final int DEFAULT = Error.DEFAULT.getCode();
 
     private Profile mProfile;
     private PersonaView mProfileView;
@@ -56,7 +59,7 @@ public class ProfileDetailsActivity extends AppCompatActivity implements Profile
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Calendar startTime;
+        Calendar startTime = null;
         if (MainActivity.LOG_D) startTime = Calendar.getInstance();
 
         super.onCreate(savedInstanceState);
@@ -74,11 +77,11 @@ public class ProfileDetailsActivity extends AppCompatActivity implements Profile
         mAgeInSecondsTextView = findViewById(R.id.tv_age_seconds);
         mRefreshLayout = findViewById(R.id.srl_refresh_details);
 
-        final int profileId = getIntent().getIntExtra(Extra.EXTRA_PROFILE_ID, Error.NOT_FOUND);
+        final int profileId = getIntent().getIntExtra(Extra.EXTRA_PROFILE_ID, NOT_FOUND);
 
-        if (profileId == Error.NOT_FOUND)
+        if (profileId == NOT_FOUND)
             throw new AssertionError("Always pass a valid profile ID when starting " + ProfileDetailsActivity.class.getSimpleName());
-        else if (profileId == Error.DEFAULT) {
+        else if (profileId == DEFAULT) {
             throw new AssertionError("Profile ID is an error code");
         }
 
@@ -113,7 +116,7 @@ public class ProfileDetailsActivity extends AppCompatActivity implements Profile
     }
 
     private void initUi() {
-        Calendar start;
+        Calendar start = null;
         if (LOG_D) start = Calendar.getInstance();
 
         if (LOG_V) Log.v(LOG_TAG, "Initializing UI");

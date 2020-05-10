@@ -9,12 +9,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.microsoft.officeuifabric.bottomsheet.BottomSheetDialog;
 import com.microsoft.officeuifabric.bottomsheet.BottomSheetItem;
 import com.microsoft.officeuifabric.persona.PersonaView;
@@ -188,7 +190,12 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     private void addProfileSilent(int sectionKey, int positionInSection, Profile profile) {
-        Objects.requireNonNull(mSectionMap.get(sectionKey)).addProfile(positionInSection, profile);
+        try {
+            Objects.requireNonNull(mSectionMap.get(sectionKey)).addProfile(positionInSection, profile);
+        } catch (IndexOutOfBoundsException e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
+            Toast.makeText(mContext, Error.DEFAULT.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void addProfile(int sectionKey, Profile profile) {
@@ -343,7 +350,8 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return headerIndex;
     }
 
-    private int getHeaderPosition(int sectionKey) {
+    @SuppressWarnings("WeakerAccess")
+    public int getHeaderPosition(int sectionKey) {
         int headerPosition = 0;
 
         Iterator<ProfilesSection> iterator = mSectionMap.values().iterator();
@@ -360,7 +368,7 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return headerPosition;
     }
 
-    private int getProfilePosition(int profileId) {
+    public int getProfilePosition(int profileId) {
         int position = 0;
         for (ProfilesSection section : mSectionMap.values()) {
             position++;
@@ -480,7 +488,7 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
 
         private void showMoreOptions() {
-            Calendar startTime;
+            Calendar startTime = null;
             if (LOG_D) startTime = Calendar.getInstance();
 
             final Profile profile = getProfile(getLayoutPosition());

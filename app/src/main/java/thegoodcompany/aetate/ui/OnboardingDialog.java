@@ -34,7 +34,7 @@ public class OnboardingDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Calendar start;
+        Calendar start = null;
         if (LOG_D) start = Calendar.getInstance();
 
         if (LOG_V) Log.v(LOG_TAG, "Showing onboarding dialog");

@@ -14,13 +14,13 @@ import java.util.Calendar;
 import thegoodcompany.aetate.R;
 import thegoodcompany.aetate.utilities.Avatar;
 import thegoodcompany.aetate.utilities.Birthday;
+import thegoodcompany.aetate.utilities.Error;
 import thegoodcompany.aetate.utilities.tagmanagement.TagManager;
 
 import static thegoodcompany.aetate.ui.MainActivity.LOG_D;
 import static thegoodcompany.aetate.ui.MainActivity.LOG_I;
 import static thegoodcompany.aetate.ui.MainActivity.LOG_V;
 import static thegoodcompany.aetate.ui.MainActivity.LOG_W;
-import static thegoodcompany.aetate.utilities.codes.Error.NOT_FOUND;
 import static thegoodcompany.aetate.utilities.profilemanagement.Profile.AVATAR_NAME;
 
 public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedListener {
@@ -29,6 +29,8 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
 
     private static final String PROFILE_MANAGER_PREF = "thegoodcompany.aetate.pref.PROFILEMANAGER";
     private static final String JSON_PROFILES_KEY = "thegoodcompany.aetate.pref.PROFILEMANAGER.JSONPROFILES";
+
+    private static final int NOT_FOUND = Error.NOT_FOUND.getCode();
 
     private static int nextProfileId = 1001;
 
@@ -47,7 +49,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     }
 
     public static ProfileManager getProfileManager(Context context) {
-        Calendar startTime;
+        Calendar startTime = null;
         if (LOG_D) startTime = Calendar.getInstance();
 
         if (LOG_V) Log.v(LOG_TAG, "Retrieving Profile Manager");
@@ -145,7 +147,7 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
     }
 
     public void addProfile(Profile profile) {
-        Calendar startTime;
+        Calendar startTime = null;
         if (LOG_D) startTime = Calendar.getInstance();
 
         if (profile.getId() == NOT_FOUND) { //Precaution step; plan of removal exists

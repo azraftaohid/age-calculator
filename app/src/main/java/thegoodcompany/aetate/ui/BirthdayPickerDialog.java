@@ -29,7 +29,6 @@ public class BirthdayPickerDialog extends DialogFragment {
         // Required empty public constructor
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static BirthdayPickerDialog newInstance(DatePickerDialog.OnDateSetListener onDateSetListener, int year, int month, int day) {
         BirthdayPickerDialog datePicker = new BirthdayPickerDialog();
         datePicker.mOnDateSetListener = onDateSetListener;
@@ -47,7 +46,7 @@ public class BirthdayPickerDialog extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Calendar start;
+        Calendar start = null;
         if (LOG_D) start = Calendar.getInstance();
 
         if (mDatePickerDialog == null) {

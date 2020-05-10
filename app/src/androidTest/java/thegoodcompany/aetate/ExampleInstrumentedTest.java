@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 
 import thegoodcompany.aetate.utilities.Birthday;
-import thegoodcompany.aetate.utilities.codes.Error;
 import thegoodcompany.aetate.utilities.profilemanagement.Profile;
 
 import static org.hamcrest.Matchers.greaterThan;
@@ -78,13 +77,14 @@ public class ExampleInstrumentedTest {
         mResources = mContext.getResources();
     }
 
+    //Final thoughts: Static was faster; 10ms vs 18ms
     @Test
     public void staticVsEnum() {
         int attempts = 400000;
 
         Calendar startTimeForStatic = Calendar.getInstance();
         for (int i = 0; i < attempts; i++) {
-            int x = Error.DEFAULT;
+            int x = thegoodcompany.aetate.utilities.codes.Error.DEFAULT;
         }
         Calendar endTImeForStatic = Calendar.getInstance();
 
@@ -102,7 +102,7 @@ public class ExampleInstrumentedTest {
 
     @Test
     public void resourceVsEnum() {
-        int attempts = 400000;
+        int attempts = 1000;
 
         Calendar startTimeForResource = Calendar.getInstance();
         for (int i = 0; i < attempts; i++) {
@@ -196,6 +196,30 @@ public class ExampleInstrumentedTest {
         String[] array = {"str1", "str2", "str3"};
         Log.v(LOG_TAG, array.toString());
         Log.v(LOG_TAG, Arrays.toString(array));
+    }
+
+    //Final Thoughts: Assigning null was slightly faster
+    @Test
+    public void assigningNullVsNothing() {
+        long attempts = 80000000;
+
+        Calendar startTimeForNothing = Calendar.getInstance();
+
+        for (long i = 0; i < attempts; i++) {
+            Calendar x;
+        }
+
+        long timeTakenForNothing = Calendar.getInstance().getTimeInMillis() - startTimeForNothing.getTimeInMillis();
+
+        Calendar startTimeForNull = Calendar.getInstance();
+
+        for (long i = 0; i < attempts; i++) {
+            Calendar x = null;
+        }
+
+        long timeTakenForNull = Calendar.getInstance().getTimeInMillis() - startTimeForNull.getTimeInMillis();
+
+        assertThat(timeTakenForNull, is(greaterThan(timeTakenForNothing)));
     }
 
 }
