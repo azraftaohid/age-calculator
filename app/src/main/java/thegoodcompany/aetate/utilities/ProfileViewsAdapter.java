@@ -21,12 +21,10 @@ import com.microsoft.officeuifabric.bottomsheet.BottomSheetDialog;
 import com.microsoft.officeuifabric.bottomsheet.BottomSheetItem;
 import com.microsoft.officeuifabric.persona.PersonaView;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -58,11 +56,11 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private Context mContext;
     private LayoutInflater mInflater;
     private ProfileManager mProfileManager;
-    private HashMap<Integer, ProfilesSection> mSectionMap;
+    private LinkedHashMap<Integer, ProfilesSection> mSectionMap;
     @Nullable
     private int[] mSectionOrder;
 
-    public ProfileViewsAdapter(Context context, ProfileManager profileManager, HashMap<Integer, ProfilesSection> sectionMap) {
+    public ProfileViewsAdapter(Context context, ProfileManager profileManager, LinkedHashMap<Integer, ProfilesSection> sectionMap) {
         if (LOG_V)
             Log.v(LOG_TAG, "Initializing profile views adapter with " + sectionMap.size() + " sections");
 
@@ -225,7 +223,7 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         if (mSectionOrder != null) {
             if (LOG_V) Log.v(LOG_TAG, "Reordering sections");
-            HashMap<Integer, ProfilesSection> newlySortedSections = new HashMap<>();
+            LinkedHashMap<Integer, ProfilesSection> newlySortedSections = new LinkedHashMap<>();
 
             for (int key : mSectionOrder) {
                 if (mSectionMap.containsKey(key))
@@ -416,7 +414,7 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         ProfilesSection[] sections = mSectionMap.values().toArray(new ProfilesSection[0]);
         Integer[] keys = mSectionMap.keySet().toArray(new Integer[0]);
 
-        mSectionMap = new HashMap<>();
+        mSectionMap = new LinkedHashMap<>();
         for (int i = 0; i < sections.length; i++) {
             ArrayList<Profile> profiles = new ArrayList<>();
             for (int i2 = 0; i2 < sections[i].getProfileCount(); i2++) {
@@ -455,28 +453,15 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             if (mProfileView.getAvatarImageDrawable() != null)
                 Log.wtf(LOG_TAG, "Profile view has avatar loaded");
 
-            mProfileView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    launchProfileDetailsActivity(getProfile(getLayoutPosition()).getId());
-                }
-            });
+            mProfileView.setOnClickListener(v -> launchProfileDetailsActivity(getProfile(getLayoutPosition()).getId()));
 
-            mProfileView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    showMoreOptions();
-                    return true;
-                }
+            mProfileView.setOnLongClickListener(v -> {
+                showMoreOptions();
+                return true;
             });
 
             ImageView customAccessoryView = CommonUtilities.generateCustomAccessoryView(mContext, R.drawable.ic_more_vertical);
-            customAccessoryView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showMoreOptions();
-                }
-            });
+            customAccessoryView.setOnClickListener(v -> showMoreOptions());
 
             mProfileView.setCustomAccessoryView(customAccessoryView);
         }
@@ -508,18 +493,15 @@ public class ProfileViewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
             BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(mContext, items, header);
 
-            bottomSheetDialog.setOnItemClickListener(new BottomSheetItem.OnClickListener() {
-                @Override
-                public void onBottomSheetItemClick(@NotNull BottomSheetItem bottomSheetItem) {
-                    if (bottomSheetItem.getId() == R.id.popup_menu_pin) {
-                        mProfileManager.pinProfile(profileId, true);
-                    } else if (bottomSheetItem.getId() == R.id.popup_menu_unpin) {
-                        mProfileManager.pinProfile(profileId, false);
-                    } else if (bottomSheetItem.getId() == R.id.popup_menu_modify) {
-                        ProfileInfoInputDialog.newInstance(mContext, REQUEST_MODIFY_PROFILE_INFO, mContext.getString(R.string.modify), profile).show(((FragmentActivity) mContext).getSupportFragmentManager(), mContext.getString(R.string.modify_profile_dialog_tag));
-                    } else if (bottomSheetItem.getId() == R.id.popup_menu_delete) {
-                        mProfileManager.removeProfile(profileId);
-                    }
+            bottomSheetDialog.setOnItemClickListener(bottomSheetItem -> {
+                if (bottomSheetItem.getId() == R.id.popup_menu_pin) {
+                    mProfileManager.pinProfile(profileId, true);
+                } else if (bottomSheetItem.getId() == R.id.popup_menu_unpin) {
+                    mProfileManager.pinProfile(profileId, false);
+                } else if (bottomSheetItem.getId() == R.id.popup_menu_modify) {
+                    ProfileInfoInputDialog.newInstance(mContext, REQUEST_MODIFY_PROFILE_INFO, mContext.getString(R.string.modify), profile).show(((FragmentActivity) mContext).getSupportFragmentManager(), mContext.getString(R.string.modify_profile_dialog_tag));
+                } else if (bottomSheetItem.getId() == R.id.popup_menu_delete) {
+                    mProfileManager.removeProfile(profileId);
                 }
             });
 

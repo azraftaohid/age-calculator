@@ -3,7 +3,6 @@ package thegoodcompany.aetate.ui;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -24,7 +23,6 @@ import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -92,14 +90,11 @@ public class ProfileInfoInputDialog extends DialogFragment {
 
         infoInputDialog.mRequestCode = requestCode;
         Calendar c = Calendar.getInstance();
-        BirthdayPickerDialog birthdayPickerDialog = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                String strDob = infoInputDialog.getString(R.string.short_date_format, month + 1, dayOfMonth, year);
-                infoInputDialog.mDobEditText.setText(strDob);
-                infoInputDialog.mDobEditText.requestFocus();
-                infoInputDialog.mDobEditText.setSelection(strDob.length());
-            }
+        BirthdayPickerDialog birthdayPickerDialog = BirthdayPickerDialog.newInstance((view, year, month, dayOfMonth) -> {
+            String strDob = infoInputDialog.getString(R.string.short_date_format, month + 1, dayOfMonth, year);
+            infoInputDialog.mDobEditText.setText(strDob);
+            infoInputDialog.mDobEditText.requestFocus();
+            infoInputDialog.mDobEditText.setSelection(strDob.length());
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
 
         infoInputDialog.setBirthdayPicker(birthdayPickerDialog);
@@ -124,14 +119,11 @@ public class ProfileInfoInputDialog extends DialogFragment {
         infoInputDialog.mEnteredDateOfBirth = String.format(Locale.ENGLISH, context.getString(R.string.short_date_format),
                 birthday.get(Birthday.MONTH) + 1, birthday.get(Birthday.DAY), birthday.get(Birthday.YEAR));
 
-        infoInputDialog.mBirthdayPicker = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                String strDob = infoInputDialog.getString(R.string.short_date_format, month + 1, dayOfMonth, year);
-                infoInputDialog.mDobEditText.setText(strDob);
-                infoInputDialog.mDobEditText.requestFocus();
-                infoInputDialog.mDobEditText.setSelection(strDob.length());
-            }
+        infoInputDialog.mBirthdayPicker = BirthdayPickerDialog.newInstance((view, year, month, dayOfMonth) -> {
+            String strDob = infoInputDialog.getString(R.string.short_date_format, month + 1, dayOfMonth, year);
+            infoInputDialog.mDobEditText.setText(strDob);
+            infoInputDialog.mDobEditText.requestFocus();
+            infoInputDialog.mDobEditText.setSelection(strDob.length());
         }, birthday.get(Birthday.YEAR), birthday.get(Birthday.MONTH), birthday.get(Birthday.DAY));
 
         Avatar avatar = updatable.getAvatar();
@@ -165,61 +157,47 @@ public class ProfileInfoInputDialog extends DialogFragment {
 
         builder.setTitle(mTitle);
         builder.setView(root)
-                .setPositiveButton(R.string.submit, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mEnteredName = mNameEditText.getText().toString();
-                        mEnteredDateOfBirth = mDobEditText.getText().toString();
-                        String[] mmddyyyy = mEnteredDateOfBirth.split("/");
+                .setPositiveButton(R.string.submit, (dialog, which) -> {
+                    mEnteredName = mNameEditText.getText().toString();
+                    mEnteredDateOfBirth = mDobEditText.getText().toString();
+                    String[] mmddyyyy = mEnteredDateOfBirth.split("/");
 
-                        int month = Integer.parseInt(mmddyyyy[0]) - 1;
-                        int day = Integer.parseInt(mmddyyyy[1]);
-                        int year = Integer.parseInt(mmddyyyy[2]);
+                    int month = Integer.parseInt(mmddyyyy[0]) - 1;
+                    int day = Integer.parseInt(mmddyyyy[1]);
+                    int year = Integer.parseInt(mmddyyyy[2]);
 
-                        if (mUpdatable != null) {
-                            mUpdatable.updateName(mEnteredName);
-                            mUpdatable.updateBirthday(year, month, day);
+                    if (mUpdatable != null) {
+                        mUpdatable.updateName(mEnteredName);
+                        mUpdatable.updateBirthday(year, month, day);
 
-                            if (mAvatar != null) mUpdatable.updateAvatar(mAvatar);
-                        } else {
-                            Birthday birthday = new Birthday(year, month, day);
-                            mOnProfileInfoSubmitted.onProfileInfoSubmit(mRequestCode, mAvatar, mEnteredName, birthday);
-                        }
-
+                        if (mAvatar != null) mUpdatable.updateAvatar(mAvatar);
+                    } else {
+                        Birthday birthday = new Birthday(year, month, day);
+                        mOnProfileInfoSubmitted.onProfileInfoSubmit(mRequestCode, mAvatar, mEnteredName, birthday);
                     }
+
                 })
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
+                .setNegativeButton(R.string.cancel, (dialog, which) -> dialog.cancel());
 
-        datePickerImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showBirthdayPicker();
-            }
-        });
+        datePickerImageView.setOnClickListener(v -> showBirthdayPicker());
 
-        View.OnFocusChangeListener onFocusChangeListener = new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus) {
-                    if (LOG_D) Log.d(LOG_TAG, "View w/ ID: " + v.getId() + " lost focus");
-                    ensureInputValidity(v);
-                } else {
-                    if (LOG_D) Log.d(LOG_TAG, "View w/ ID: " + v.getId() + " gained focus");
-                }
+        View.OnFocusChangeListener onFocusChangeListener = (v, hasFocus) -> {
+            if (!hasFocus) {
+                if (LOG_D) Log.d(LOG_TAG, "View w/ ID: " + v.getId() + " lost focus");
+                ensureInputValidity(v);
+            } else {
+                if (LOG_D) Log.d(LOG_TAG, "View w/ ID: " + v.getId() + " gained focus");
             }
         };
 
         TextWatcher inputWatcher = new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
 
             @Override
             public void afterTextChanged(Editable s) {
@@ -232,12 +210,7 @@ public class ProfileInfoInputDialog extends DialogFragment {
         mDobEditText.setOnFocusChangeListener(onFocusChangeListener);
         mDobEditText.addTextChangedListener(inputWatcher);
 
-        mAvatarImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dispatchAvatarPickerIntent();
-            }
-        });
+        mAvatarImageView.setOnClickListener(v -> dispatchAvatarPickerIntent());
 
         if (LOG_D)
             Log.d(LOG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - start.getTimeInMillis()) +
@@ -274,12 +247,9 @@ public class ProfileInfoInputDialog extends DialogFragment {
         } else {
             if (ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    ExplanationDialog.newInstance(getString(R.string.explanation_permission_read_external_storage), new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                            requestPermissionsRequiredForPickingAvatar();
-                        }
-                    }).show(getActivity().getSupportFragmentManager(), getString(R.string.explanation_dialog_tag));
+                    ExplanationDialog.newInstance(getString(R.string.explanation_permission_read_external_storage), dialog ->
+                            requestPermissionsRequiredForPickingAvatar())
+                            .show(getActivity().getSupportFragmentManager(), getString(R.string.explanation_dialog_tag));
 
                 } else {
                     requestPermissionsRequiredForPickingAvatar();
@@ -349,7 +319,6 @@ public class ProfileInfoInputDialog extends DialogFragment {
                             int idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns._ID);
                             long id = cursor.getLong(idColumn);
 
-                            //noinspection deprecation
                             avatarBitmap = MediaStore.Images.Thumbnails.getThumbnail(resolver, id, MediaStore.Images.Thumbnails.MINI_KIND, null);
                         } catch (CursorIndexOutOfBoundsException e) {
                             Log.e(LOG_TAG, "Couldn't point cursor to the specified image");

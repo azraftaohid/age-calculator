@@ -41,12 +41,7 @@ public class ExplanationDialog extends DialogFragment {
             builder.setMessage(data.getString(MESSAGE));
         }
 
-        builder.setNeutralButton(R.string.dismiss, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        builder.setNeutralButton(R.string.dismiss, (dialog, which) -> dialog.dismiss());
 
         return builder.create();
     }

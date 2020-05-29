@@ -351,14 +351,11 @@ public class ProfileManager implements ProfileManagerInterface.onProfileUpdatedL
         final Avatar avatar = getProfileById(profileId).getAvatar();
 
         if (avatar != null) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    if (LOG_I)
-                        Log.i(LOG_TAG, "A new thread to delete avatar image file has been started");
-                    if (!avatar.deleteAvatarFile()) {
-                        Log.e(LOG_TAG, "There was an error deleting avatar file of profile w/ ID: " + profileId);
-                    }
+            new Thread(() -> {
+                if (LOG_I)
+                    Log.i(LOG_TAG, "A new thread to delete avatar image file has been started");
+                if (!avatar.deleteAvatarFile()) {
+                    Log.e(LOG_TAG, "There was an error deleting avatar file of profile w/ ID: " + profileId);
                 }
             }).start();
         }

@@ -68,4 +68,5 @@
         If you wish to not grant this permission, the feature will become unavailable.
         \n\nYou don\'t have to worry about other features, they will work as expected.</string>
     <string name="dismiss">Dismiss</string>
+    <string name="send_feedback">Send Feedback</string>
 </resources>

@@ -86,18 +86,8 @@ public class RenameDialog extends DialogFragment {
 
         builder.setTitle(getString(R.string.rename_long));
         builder.setView(root)
-                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mUpdatable.updateName(mNewNameEditText.getText().toString());
-                    }
-                })
-                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Objects.requireNonNull(RenameDialog.this.getDialog()).cancel();
-                    }
-                });
+                .setPositiveButton(getString(R.string.ok), (dialog, which) -> mUpdatable.updateName(mNewNameEditText.getText().toString()))
+                .setNegativeButton(getString(R.string.cancel), (dialog, which) -> Objects.requireNonNull(RenameDialog.this.getDialog()).cancel());
 
         Dialog dialog = builder.create();
         Window window = dialog.getWindow();

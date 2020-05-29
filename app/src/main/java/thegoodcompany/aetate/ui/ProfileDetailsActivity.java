@@ -85,28 +85,15 @@ public class ProfileDetailsActivity extends AppCompatActivity implements Profile
             throw new AssertionError("Profile ID is an error code");
         }
 
-        mRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refresh();
-            }
-        });
+        mRefreshLayout.setOnRefreshListener(this::refresh);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mProfile = ProfileManager.getProfileManager(ProfileDetailsActivity.this).getProfileById(profileId);
-                initUi();
-            }
+        new Thread(() -> {
+            mProfile = ProfileManager.getProfileManager(ProfileDetailsActivity.this).getProfileById(profileId);
+            initUi();
         }).start();
 
         ImageView accessoryView = CommonUtilities.generateCustomAccessoryView(this, R.drawable.ic_edit);
-        accessoryView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showRenameDialog();
-            }
-        });
+        accessoryView.setOnClickListener(v -> showRenameDialog());
         mProfileView.setCustomAccessoryView(accessoryView);
 
         if (MainActivity.LOG_D) {
@@ -125,12 +112,7 @@ public class ProfileDetailsActivity extends AppCompatActivity implements Profile
             if (LOG_I) Log.i(LOG_TAG, "Current thread wasn't on main ui");
             if (LOG_V) Log.v(LOG_TAG, "Initializing UI by running UI thread");
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    initUi0();
-                }
-            });
+            runOnUiThread(this::initUi0);
 
         } else {
             initUi0();

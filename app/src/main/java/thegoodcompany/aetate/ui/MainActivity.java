@@ -2,6 +2,8 @@ package thegoodcompany.aetate.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -9,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,11 +20,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import thegoodcompany.aetate.BuildConfig;
 import thegoodcompany.aetate.R;
@@ -53,13 +61,9 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
     //Change log level to limit logging scopes
     private static final int LOG_LEVEL = BuildConfig.DEBUG ? Log.VERBOSE : Log.ERROR;
-    @SuppressWarnings("ConstantConditions")
     public static final boolean LOG_V = LOG_LEVEL <= Log.VERBOSE;
-    @SuppressWarnings("ConstantConditions")
     public static final boolean LOG_D = LOG_LEVEL <= Log.DEBUG;
-    @SuppressWarnings("ConstantConditions")
     public static final boolean LOG_I = LOG_LEVEL <= Log.INFO;
-    @SuppressWarnings("ConstantConditions")
     public static final boolean LOG_W = LOG_LEVEL <= Log.WARN;
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -67,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
     private static final String DEFAULT_PREFERENCE = "thegoodcompany.aetate.pref.DEFAULT";
     private static final String HAS_ONBOARDED_KEY = "thegoodcompany.aetate.pref.key.HAS_ONBOARDED";
+    private static final String FEEDBACK_EMAIL = "feedback_email";
 
     private static final int UPCOMING_BIRTHDAY_SECTION_KEY = 1200;
 
@@ -76,10 +81,11 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     private TextView mEmptyProfilesTextView;
     private Button mSetupButton;
     private FloatingActionButton mAddProfileFab;
+    private SwipeRefreshLayout mRefreshProfilesLayout;
 
     private ProfileManager mProfileManager;
     private ProfileViewsAdapter mProfileViewsAdapter;
-    private SwipeRefreshLayout mRefreshProfilesLayout;
+    private FirebaseRemoteConfig mRemoteConfig = FirebaseRemoteConfig.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +95,18 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         super.onCreate(savedInstanceState);
         this.setTitle(getString(R.string.main_activity_label));
         setContentView(R.layout.activity_main);
+
+        mRemoteConfig.activate();
+
+        mRemoteConfig.setConfigSettingsAsync(new FirebaseRemoteConfigSettings.Builder()
+                .setMinimumFetchIntervalInSeconds(BuildConfig.DEBUG ? 0 : TimeUnit.HOURS.toSeconds(12))
+                .build());
+
+        HashMap<String, Object> defaults = new HashMap<>();
+        defaults.put(FEEDBACK_EMAIL, "azraftaohid@outlook.com");
+        mRemoteConfig.setDefaultsAsync(defaults);
+
+        mRemoteConfig.fetch().addOnSuccessListener(aVoid -> mRemoteConfig.activate());
 
         SharedPreferences pref = getSharedPreferences(DEFAULT_PREFERENCE, MODE_PRIVATE);
         if (!pref.getBoolean(HAS_ONBOARDED_KEY, false)) {
@@ -111,14 +129,14 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
         synchronizeVisibleStatus();
 
-        mRefreshProfilesLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refreshProfiles();
-            }
-        });
+        mRefreshProfilesLayout.setOnRefreshListener(this::refreshProfiles);
 
-//        generateDummyProfiles(125);
+        if (BuildConfig.DEBUG) {
+            mAddProfileFab.setOnLongClickListener(v -> {
+                generateDummyProfiles(10);
+                return false;
+            });
+        }
 
         if (LOG_D) {
             Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())
@@ -130,14 +148,19 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
-        return super.onCreateOptionsMenu(menu);
+
+        return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.menu_refresh) {
-            refreshProfiles();
-            return true;
+        switch (item.getItemId()) {
+            case R.id.menu_refresh:
+                refreshProfiles();
+                return true;
+            case R.id.menu_send_feedback:
+                dispatchFeedbackIntent();
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -145,6 +168,26 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
     void introduceFirstTimeUser() {
         OnboardingDialog.newInstance().show(getSupportFragmentManager(), getString(R.string.onboarding_tag));
+    }
+
+    private void dispatchFeedbackIntent() {
+        String data = generateFeedbackMessage();
+
+        Intent feedbackIntent = new Intent(Intent.ACTION_SENDTO);
+        feedbackIntent.setData(Uri.parse("mailto:"));
+
+        String sender = mRemoteConfig.getString(FEEDBACK_EMAIL);
+        feedbackIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{sender});
+        feedbackIntent.putExtra(Intent.EXTRA_SUBJECT, "(Age Calculator) User Feedback");
+        feedbackIntent.putExtra(Intent.EXTRA_TEXT, data);
+
+        if (feedbackIntent.resolveActivity(getPackageManager()) != null)
+            startActivity(feedbackIntent);
+        else {
+            Toast.makeText(this, getString(R.string.not_resolved_activity), Toast.LENGTH_SHORT).show();
+            FirebaseCrashlytics.getInstance().log("User has no email client to send bug report");
+        }
+
     }
 
     @Override
@@ -203,7 +246,16 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         long startTime = System.currentTimeMillis();
 
         for (int i = 0; i < howMany; i++) {
-            onProfileInfoSubmit(Request.REQUEST_NEW_PROFILE_INFO, null, ("Dummy " + (i + 100)), new Birthday(1920, 5, 24));
+            int odds1 = Math.random() > 0.5 ? 1 : 2;
+            int odds2 = Math.random() > 0.5 ? 1 : 2;
+
+            int rand1 = (int) (Math.random() * 40);
+            int rand2 = (int) (Math.random() * 12);
+            int rand3 = (int) (Math.random() * 28);
+
+            int extension = (int) (Math.random() * (odds1 == 1 ? 100000 : 50000));
+            onProfileInfoSubmit(Request.REQUEST_NEW_PROFILE_INFO, null, ("Dummy " + (i + extension)),
+                    new Birthday(1975 + (odds2 == 1 ? rand1 : (-rand1)), Math.round(rand2), Math.round(rand3)));
         }
 
         long requiredTime = System.currentTimeMillis() - startTime;
@@ -217,8 +269,8 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
 
         boolean isEmpty = true;
 
-        HashMap<Integer, ProfilesSection> initSectionMap = generateInitSectionMap();
-        HashMap<Integer, ProfilesSection> sortedSectionMap = generateSectionMap();
+        LinkedHashMap<Integer, ProfilesSection> initSectionMap = generateInitSectionMap();
+        LinkedHashMap<Integer, ProfilesSection> sortedSectionMap = generateSectionMap();
 
         for (int key : initSectionMap.keySet()) {
             if (!sortedSectionMap.containsKey(key)) {
@@ -311,7 +363,7 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         }
 
         if (sectionKey == UPCOMING_BIRTHDAY_SECTION_KEY && !isPinned) {
-            HashMap<Integer, ProfilesSection> sectionMap = generateSectionMap();
+            LinkedHashMap<Integer, ProfilesSection> sectionMap = generateSectionMap();
 
             ProfilesSection section = sectionMap.get(sectionKey);
             ArrayList<Integer> pinnedIds = TagManager.getTaggedIds(TAG_PIN);
@@ -403,16 +455,16 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
     private ProfilesSection generateInitSection(int sectionKey) {
         switch (sectionKey) {
             case TAG_PIN:
-                return new ProfilesSection(new ArrayList<Profile>(), getString(R.string.pinned));
+                return new ProfilesSection(new ArrayList<>(), getString(R.string.pinned));
             case UPCOMING_BIRTHDAY_SECTION_KEY:
-                return new ProfilesSection(new ArrayList<Profile>(), getString(R.string.upcoming_birthday));
+                return new ProfilesSection(new ArrayList<>(), getString(R.string.upcoming_birthday));
             default:
-                return new ProfilesSection(new ArrayList<Profile>(), getString(R.string.others));
+                return new ProfilesSection(new ArrayList<>(), getString(R.string.others));
         }
     }
 
-    private HashMap<Integer, ProfilesSection> generateInitSectionMap() {
-        HashMap<Integer, ProfilesSection> sectionMap = new HashMap<>();
+    private LinkedHashMap<Integer, ProfilesSection> generateInitSectionMap() {
+        LinkedHashMap<Integer, ProfilesSection> sectionMap = new LinkedHashMap<>();
         sectionMap.put(TAG_PIN, generateInitSection(TAG_PIN));
         sectionMap.put(UPCOMING_BIRTHDAY_SECTION_KEY, generateInitSection(UPCOMING_BIRTHDAY_SECTION_KEY));
         sectionMap.put(NO_TAG, generateInitSection(NO_TAG));
@@ -420,13 +472,13 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
         return sectionMap;
     }
 
-    private HashMap<Integer, ProfilesSection> generateSectionMap() {
+    private LinkedHashMap<Integer, ProfilesSection> generateSectionMap() {
         ArrayList<Profile> pinnedProfiles = mProfileManager.getPinnedProfiles();
         ArrayList<Profile> otherProfiles = mProfileManager.getOtherProfiles();
         ArrayList<Profile> upcomingBdaysProfile = getUpcomingBirthdayProfiles(pinnedProfiles, true);
         upcomingBdaysProfile.addAll(getUpcomingBirthdayProfiles(otherProfiles, true));
 
-        HashMap<Integer, ProfilesSection> sectionMap = new HashMap<>();
+        LinkedHashMap<Integer, ProfilesSection> sectionMap = new LinkedHashMap<>();
         if (pinnedProfiles.size() > 0)
             sectionMap.put(TAG_PIN, new ProfilesSection(pinnedProfiles, getString(R.string.pinned)));
         if (upcomingBdaysProfile.size() > 0)
@@ -435,5 +487,15 @@ public class MainActivity extends AppCompatActivity implements ProfileManagerInt
             sectionMap.put(NO_TAG, new ProfilesSection(otherProfiles, getString(R.string.others)));
 
         return sectionMap;
+    }
+
+    private String generateFeedbackMessage() {
+        return "\n\nWrite above this line" +
+                "\nDevice: " +
+                Build.MODEL +
+                "\nAPI level: " +
+                Build.VERSION.SDK_INT +
+                "\nBuild version " +
+                BuildConfig.VERSION_CODE;
     }
 }

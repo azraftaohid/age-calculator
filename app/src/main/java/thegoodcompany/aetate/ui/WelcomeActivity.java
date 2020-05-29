@@ -8,7 +8,6 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -57,11 +56,8 @@ public class WelcomeActivity extends AppCompatActivity {
         mDoneButton = findViewById(R.id.bt_done);
         mErrorTextView = findViewById(R.id.tv_error_message);
 
-        View.OnFocusChangeListener onInputFocusChangeListener = new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (!hasFocus) ensureInputValidity(v);
-            }
+        View.OnFocusChangeListener onInputFocusChangeListener = (v, hasFocus) -> {
+            if (!hasFocus) ensureInputValidity(v);
         };
 
         TextWatcher inputWatcher = new TextWatcher() {
@@ -86,14 +82,11 @@ public class WelcomeActivity extends AppCompatActivity {
         mDobEditText.setOnFocusChangeListener(onInputFocusChangeListener);
 
         Calendar c = Calendar.getInstance();
-        mBirthdayPickerDialog = BirthdayPickerDialog.newInstance(new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                String strDob = getString(R.string.short_date_format, month + 1, dayOfMonth, year);
-                mDobEditText.setText(strDob);
-                mDobEditText.requestFocus();
-                mDobEditText.setSelection(strDob.length());
-            }
+        mBirthdayPickerDialog = BirthdayPickerDialog.newInstance((view, year, month, dayOfMonth) -> {
+            String strDob = getString(R.string.short_date_format, month + 1, dayOfMonth, year);
+            mDobEditText.setText(strDob);
+            mDobEditText.requestFocus();
+            mDobEditText.setSelection(strDob.length());
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
 
 
@@ -108,14 +101,11 @@ public class WelcomeActivity extends AppCompatActivity {
 
     @Deprecated
     public void showBirthdayPicker0(View view) {
-        DatePickerDialog.OnDateSetListener onDateSetListener = new DatePickerDialog.OnDateSetListener() {
-            @Override
-            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                String strDob = getString(R.string.short_date_format, month + 1, dayOfMonth, year);
-                mDobEditText.setText(strDob);
-                mDobEditText.requestFocus();
-                mDobEditText.setSelection(strDob.length());
-            }
+        DatePickerDialog.OnDateSetListener onDateSetListener = (view1, year, month, dayOfMonth) -> {
+            String strDob = getString(R.string.short_date_format, month + 1, dayOfMonth, year);
+            mDobEditText.setText(strDob);
+            mDobEditText.requestFocus();
+            mDobEditText.setSelection(strDob.length());
         };
 
         Editable currentText = mDobEditText.getText();

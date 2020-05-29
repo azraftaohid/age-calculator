@@ -41,12 +41,7 @@ public class OnboardingDialog extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
         @SuppressLint("InflateParams") View root = requireActivity().getLayoutInflater().inflate(R.layout.dialog_onboarding, null);
 
-        root.findViewById(R.id.bt_get_started).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Objects.requireNonNull(OnboardingDialog.this.getDialog()).dismiss();
-            }
-        });
+        root.findViewById(R.id.bt_get_started).setOnClickListener(v -> Objects.requireNonNull(OnboardingDialog.this.getDialog()).dismiss());
 
         if (LOG_D)
             Log.d(LOG_TAG_PERFORMANCE, "It took " + (Calendar.getInstance().getTimeInMillis() - start.getTimeInMillis()) +
