@@ -19,13 +19,13 @@
         <activity
             android:name="thegoodcompany.aetate.ui.ProfileDetailsActivity"
             android:label="@string/details_activity_label"
-            android:parentActivityName="thegoodcompany.aetate.ui.MainActivity">
+            android:parentActivityName="thegoodcompany.aetate.ui.HomeActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="thegoodcompany.aetate.ui.MainActivity" />
+                android:value="thegoodcompany.aetate.ui.HomeActivity" />
         </activity>
         <activity
-            android:name="thegoodcompany.aetate.ui.MainActivity"
+            android:name="thegoodcompany.aetate.ui.HomeActivity"
             android:launchMode="singleTask">
 
             <intent-filter>
@@ -33,7 +33,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="thegoodcompany.aetate.ui.WelcomeActivity" />
     </application>
 
 </manifest>

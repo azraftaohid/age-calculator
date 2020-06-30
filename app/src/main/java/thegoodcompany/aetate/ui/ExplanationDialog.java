@@ -12,20 +12,22 @@ import androidx.fragment.app.DialogFragment;
 import thegoodcompany.aetate.R;
 
 public class ExplanationDialog extends DialogFragment {
-    private static final String MESSAGE = "com.thegoodcompany.aetate.explanationdialog.MESSAGE";
+    private static final String ARGS_MESSAGE = "com.thegoodcompany.aetate.explanationdialog.MESSAGE";
+    private static final String ARGS_CODE = "com.thegoodcompany.aetate.explanationdialog.CODE";
 
-    private DialogInterface.OnDismissListener mOnDismissListener;
+    private int mCode;
 
     public ExplanationDialog() {
 
     }
 
-    public static ExplanationDialog newInstance(@NonNull String message, DialogInterface.OnDismissListener onDismissListener) {
+    @NonNull
+    public static ExplanationDialog newInstance(int explanationCode, @NonNull String message) {
         ExplanationDialog fragment = new ExplanationDialog();
-        fragment.mOnDismissListener = onDismissListener;
 
         Bundle args = new Bundle();
-        args.putString(MESSAGE, message);
+        args.putString(ARGS_MESSAGE, message);
+        args.putInt(ARGS_CODE, explanationCode);
 
         fragment.setArguments(args);
         return fragment;
@@ -38,7 +40,8 @@ public class ExplanationDialog extends DialogFragment {
 
         Bundle data = getArguments();
         if (data != null) {
-            builder.setMessage(data.getString(MESSAGE));
+            mCode = data.getInt(ARGS_CODE);
+            builder.setMessage(data.getString(ARGS_MESSAGE));
         }
 
         builder.setNeutralButton(R.string.dismiss, (dialog, which) -> dialog.dismiss());
@@ -48,7 +51,17 @@ public class ExplanationDialog extends DialogFragment {
 
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
-        if (mOnDismissListener != null) mOnDismissListener.onDismiss(dialog);
-        else super.onDismiss(dialog);
+        if (getContext() instanceof OnExplain)
+            ((OnExplain) getContext()).onExplanationResult(mCode, ExplanationState.UNDERSTOOD);
+
+        super.onDismiss(dialog);
+    }
+
+    enum ExplanationState {
+        UNDERSTOOD
+    }
+
+    interface OnExplain {
+        void onExplanationResult(int explanationCode, ExplanationState state);
     }
 }

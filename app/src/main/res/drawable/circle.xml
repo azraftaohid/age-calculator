@@ -7,7 +7,7 @@
     <size android:width="96dp"
         android:height="96dp" />
 
-    <solid android:color="@color/uifabric_communication_tint_20" />
+    <solid android:color="@color/fluentui_communication_tint_20" />
 
     <padding android:left="32dp" android:top="32dp"
         android:right="32dp" android:bottom="32dp" />

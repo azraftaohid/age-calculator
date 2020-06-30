@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@drawable/circle" />
-    <item android:drawable="@drawable/ic_add_photo" />
+    <item android:id="@+id/add_photo_background">
+        <shape android:shape="oval">
+            <size
+                android:width="96dp"
+                android:height="96dp" />
+            <solid android:color="@color/add_photo_background" />
+            <padding
+                android:bottom="32dp"
+                android:left="32dp"
+                android:right="32dp"
+                android:top="32dp" />
+        </shape>
+    </item>
+
+    <item
+        android:id="@+id/add_photo_drawable"
+        android:drawable="@drawable/ic_fluent_image_add_24_regular" />
 </layer-list>

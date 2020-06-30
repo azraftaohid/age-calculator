@@ -8,12 +8,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import thegoodcompany.aetate.utilities.ProfileViewsAdapter;
+import thegoodcompany.aetate.utilities.list.profile.ProfileListAdapter;
 
 @RunWith(AndroidJUnit4ClassRunner.class)
 public class AdapterTest {
     Context mContext;
-    ProfileViewsAdapter mAdapter;
+    ProfileListAdapter mAdapter;
 
     @Before
     public void setUp() {
