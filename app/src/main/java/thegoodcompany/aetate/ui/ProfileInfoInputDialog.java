@@ -151,7 +151,7 @@ public class ProfileInfoInputDialog extends DialogFragment implements Explanatio
                 Birthday birthday = profile.getBirthday();
 
                 String enteredDateOfBirth = DateStringUtils
-                        .formatDate(requireContext(), birthday.getYear(), birthday.getMonthValue(), birthday.getDayOfMonth());
+                        .formatDateShort(requireContext(), birthday.getYear(), birthday.getMonthValue(), birthday.getDayOfMonth());
                 binding.dateOfBirth.setText(enteredDateOfBirth);
                 binding.dateOfBirth.setSelection(enteredDateOfBirth.length());
 
@@ -206,7 +206,7 @@ public class ProfileInfoInputDialog extends DialogFragment implements Explanatio
 
             Intent chooserIntent = Intent.createChooser(pickAvatarIntent, "Choose from");
 
-            if (chooserIntent.resolveActivity(Objects.requireNonNull(getActivity()).getPackageManager()) != null)
+            if (chooserIntent.resolveActivity(requireActivity().getPackageManager()) != null)
                 startActivityForResult(chooserIntent, REQUEST_PICK_AVATAR);
             else {
                 Log.e(LOG_TAG, "Couldn't find any activity to pick image");
@@ -214,10 +214,10 @@ public class ProfileInfoInputDialog extends DialogFragment implements Explanatio
             }
 
         } else {
-            if (ContextCompat.checkSelfPermission(Objects.requireNonNull(getActivity()), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
                     ExplanationDialog.newInstance(R.id.explanation_avatar_pick_permission, getString(R.string.explanation_permission_read_external_storage))
-                            .show(getActivity().getSupportFragmentManager(), getString(R.string.explanation_dialog_tag));
+                            .show(requireActivity().getSupportFragmentManager(), getString(R.string.explanation_dialog_tag));
 
                 } else {
                     requestPermissionsRequiredForPickingAvatar();
@@ -227,7 +227,7 @@ public class ProfileInfoInputDialog extends DialogFragment implements Explanatio
             }
 
             Intent pickAvatarIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            if (pickAvatarIntent.resolveActivity(Objects.requireNonNull(getActivity()).getPackageManager()) != null) {
+            if (pickAvatarIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
                 startActivityForResult(pickAvatarIntent, REQUEST_PICK_AVATAR);
             } else {
                 Log.e(LOG_TAG, "Couldn't find any app to pick image");
@@ -267,7 +267,7 @@ public class ProfileInfoInputDialog extends DialogFragment implements Explanatio
                 if (LOG_V) Log.v(LOG_TAG, "Initiating avatar bitmap");
                 Bitmap avatarBitmap = null;
                 try {
-                    ContentResolver resolver = Objects.requireNonNull(Objects.requireNonNull(getContext()).getApplicationContext()).getContentResolver();
+                    ContentResolver resolver = Objects.requireNonNull(requireContext().getApplicationContext()).getContentResolver();
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         avatarBitmap = resolver.loadThumbnail(avatarUri, new Size(256, 256), null);
 
@@ -349,7 +349,7 @@ public class ProfileInfoInputDialog extends DialogFragment implements Explanatio
     }
 
     public void onBirthdayPicked(@NotNull ZonedDateTime zonedDateTime, @NotNull Duration duration) {
-        String strDate = DateStringUtils.formatDate(requireContext(), zonedDateTime.getYear(),
+        String strDate = DateStringUtils.formatDateShort(requireContext(), zonedDateTime.getYear(),
                 zonedDateTime.getMonthValue() - 1, zonedDateTime.getDayOfMonth());
 
         binding.dateOfBirth.setText(strDate);

@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 
 import thegoodcompany.aetate.BuildConfig;
 import thegoodcompany.aetate.R;
@@ -28,6 +27,7 @@ import thegoodcompany.aetate.databinding.ActivityProfileDetailsBinding;
 import thegoodcompany.aetate.utilities.Avatar;
 import thegoodcompany.aetate.utilities.Birthday;
 import thegoodcompany.aetate.utilities.CommonUtilities;
+import thegoodcompany.aetate.utilities.DateStringUtils;
 import thegoodcompany.aetate.utilities.Error;
 import thegoodcompany.aetate.utilities.codes.Extra;
 import thegoodcompany.aetate.utilities.list.profiledetails.DetailItem;
@@ -83,6 +83,7 @@ public class ProfileDetailsActivity extends AppCompatActivity implements Profile
 
         binding.modify.setOnClickListener(v -> showModifyDialog());
         binding.detailsRefresher.setOnRefreshListener(this::refresh);
+        ProfileManager.getInstance(this).addOnProfileUpdatedListener(this);
 
         if (LOG_D) {
             Log.d(LOG_TAG_PERFORMANCE, "It took " + (System.currentTimeMillis() - startTime)
@@ -101,8 +102,7 @@ public class ProfileDetailsActivity extends AppCompatActivity implements Profile
         Birthday birthday = profile.getBirthday();
 
         binding.name.setText(profile.getName());
-        binding.birthday.setText(String.format(Locale.ENGLISH, getString(R.string.long_date_format),
-                birthday.getMonth().getShortName(), birthday.getDayOfMonth(), birthday.getYear()));
+        binding.birthday.setText(DateStringUtils.formatDateAbbrev(this, birthday.getYear(), birthday.getMonthValue(), birthday.getDayOfMonth()));
 
         Avatar avatar = profile.getAvatar();
         if (avatar != null) binding.avatar.setAvatarImageBitmap(avatar.getBitmap());
@@ -238,9 +238,10 @@ public class ProfileDetailsActivity extends AppCompatActivity implements Profile
     }
 
     @Override
-    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
-        adapter.replaceSection(DetailListAdapter.Section.BASIC, createSection(DetailListAdapter.Section.BASIC));
-        adapter.replaceSection(DetailListAdapter.Section.AGE, createSection(DetailListAdapter.Section.AGE));
+    public void onProfileAvatarChanged(int profileId, @Nullable Avatar newAvatar, Avatar previousAvatar) {
+        if (newAvatar != null)
+            binding.avatar.setAvatarImageDrawable(newAvatar.getCircularDrawable());
+        else binding.avatar.setAvatarImageDrawable(null);
     }
 
     @Override
@@ -249,10 +250,11 @@ public class ProfileDetailsActivity extends AppCompatActivity implements Profile
     }
 
     @Override
-    public void onProfileAvatarChanged(int profileId, @Nullable Avatar newAvatar, Avatar previousAvatar) {
-        if (newAvatar != null)
-            binding.avatar.setAvatarImageDrawable(newAvatar.getCircularDrawable());
-        else binding.avatar.setAvatarImageDrawable(null);
+    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+        binding.birthday.setText(DateStringUtils.formatDateAbbrev(this, newBirthYear, newBirthMonth, newBirthDay));
+
+        adapter.replaceSection(DetailListAdapter.Section.BASIC, createSection(DetailListAdapter.Section.BASIC));
+        adapter.replaceSection(DetailListAdapter.Section.AGE, createSection(DetailListAdapter.Section.AGE));
     }
 
     private void refresh() {

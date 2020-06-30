@@ -15,6 +15,7 @@ import thegoodcompany.aetate.utilities.Avatar;
 import thegoodcompany.aetate.utilities.Birthday;
 import thegoodkid.common.utils.recyclerview.BaseItem;
 
+import static thegoodcompany.aetate.utilities.Logging.LOG_I;
 import static thegoodcompany.aetate.utilities.Logging.LOG_V;
 
 public class Profile implements BaseItem, ProfileManagerInterface.Updatable {
@@ -62,6 +63,11 @@ public class Profile implements BaseItem, ProfileManagerInterface.Updatable {
     public void updateName(@NonNull String newName) {
         if (LOG_V) Log.v(LOG_TAG, "Updating name for profile w/ ID " + mId);
 
+        if (mName.equals(newName)) {
+            if (LOG_I) Log.i(LOG_TAG, "No changes were necessary");
+            return;
+        }
+
         String prevName = mName;
         mName = newName;
 
@@ -73,29 +79,32 @@ public class Profile implements BaseItem, ProfileManagerInterface.Updatable {
     public void updateBirthday(int year, int month, int day) {
         if (LOG_V) Log.v(LOG_TAG, "Updating date of birth for profile w/ ID " + mId);
 
-        Birthday prevDateOfBirth = new Birthday(mBirthday.getYear(), mBirthday.getMonthValue(), mBirthday.getYear());
+        if (mBirthday.equals(year, month, day)) {
+            if (LOG_I) Log.i(LOG_TAG, "No changes were necessary");
+            return;
+        }
 
-        mBirthday.setDay(day)
-                .setMonth(month)
-                .setYear(year);
+        Birthday prev = mBirthday;
+        mBirthday = new Birthday(year, month, day);
 
         if (mOnProfileUpdatedListener != null)
-            mOnProfileUpdatedListener.onProfileDateOfBirthUpdated(mId, year, month, day, prevDateOfBirth);
+            mOnProfileUpdatedListener.onProfileDateOfBirthUpdated(mId, year, month, day, prev);
     }
 
     @Override
     public void updateAvatar(@Nullable Avatar newAvatar) {
         if (LOG_V) Log.v(LOG_TAG, "Updating avatar for profile w/ ID " + mId);
 
-        Avatar prevAvatar = null;
-        if (mAvatar != null) {
-            prevAvatar = Avatar.makeCopy(mAvatar);
+        if ((mAvatar != null && mAvatar.equals(newAvatar)) || mAvatar == null && newAvatar == null) {
+            if (LOG_I) Log.i(LOG_TAG, "No changes were necessary");
+            return;
         }
 
+        Avatar prev = mAvatar;
         mAvatar = newAvatar;
 
         if (mOnProfileUpdatedListener != null)
-            mOnProfileUpdatedListener.onProfileAvatarChanged(mId, newAvatar, prevAvatar);
+            mOnProfileUpdatedListener.onProfileAvatarChanged(mId, newAvatar, prev);
     }
 
     @Override

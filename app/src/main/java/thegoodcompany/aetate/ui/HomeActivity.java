@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,8 +17,12 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.DividerItemDecoration;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
@@ -35,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -66,7 +72,8 @@ public class HomeActivity extends AppCompatActivity
         ProfileManagerInterface.OnProfileRemovedListener,
         ProfileManagerInterface.OnProfilePinnedListener,
         ProfileInfoInputDialog.OnProfileInfoSubmitListener,
-        ProfileListAdapter.StateListener {
+        ProfileListAdapter.StateListener,
+        SearchView.OnQueryTextListener {
 
     private static final String LOG_TAG = HomeActivity.class.getSimpleName();
     private static final String LOG_TAG_PERFORMANCE = LOG_TAG + ".performance";
@@ -74,14 +81,17 @@ public class HomeActivity extends AppCompatActivity
     private static final String DEFAULT_PREFERENCE = "thegoodcompany.aetate.pref.DEFAULT";
     private static final String HAS_ONBOARDED_KEY = "thegoodcompany.aetate.pref.key.HAS_ONBOARDED";
     private static final String FEEDBACK_EMAIL = "feedback_email";
+    private static final String SEARCH_FRAGMENT_TAG = "thegoodcompany.aetate.ui.HomeActivity.tag.FRAGMENT_SEARCH";
 
     private static final int MIN_UPCOMING_DURATION_DAYS = 7;
 
     private ActivityHomeBinding binding;
     private ProfileManager mProfileManager;
     private ProfileListAdapter<Group> mAdapter;
-    private FirebaseRemoteConfig mRemoteConfig = FirebaseRemoteConfig.getInstance();
+    private Handler mQueryHandler;
+    private LinkedList<Runnable> mQueries = new LinkedList<>();
     private ViewWelcomeBinding mWelcomeBinding;
+    private FirebaseRemoteConfig mRemoteConfig = FirebaseRemoteConfig.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,6 +138,71 @@ public class HomeActivity extends AppCompatActivity
     private void setupAppbar() {
         binding.appBar.getToolbar().setTitle(R.string.home_activity_label);
         setSupportActionBar(binding.appBar.getToolbar());
+
+        mQueryHandler = new Handler(getMainLooper());
+
+        binding.searchbar.setOnQueryTextFocusChangeListener((view, b) -> {
+            if (b) {
+                FragmentManager manager = getSupportFragmentManager();
+                if (manager.findFragmentByTag(SEARCH_FRAGMENT_TAG) != null) return;
+
+                ProfileSearchFragment fragment = ProfileSearchFragment.newInstance();
+
+                FragmentTransaction transaction = manager.beginTransaction();
+                transaction.replace(binding.searchResultFragmentContainer.getId(), fragment, SEARCH_FRAGMENT_TAG);
+                transaction.commit();
+
+                binding.fabAddProfile.hide();
+            }
+        });
+
+        binding.searchbar.setOnQueryTextListener(this);
+
+        binding.searchbar.setOnCloseListener(() -> {
+            FragmentManager manager = getSupportFragmentManager();
+            Fragment fragment = manager.findFragmentByTag(SEARCH_FRAGMENT_TAG);
+            if (fragment != null) {
+                FragmentTransaction transaction = manager.beginTransaction();
+                transaction.remove(fragment);
+                transaction.commit();
+            }
+
+            binding.fabAddProfile.show();
+            return true;
+        });
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        binding.searchbar.setShowSearchProgress(true);
+        clearPendingQueries();
+
+        Runnable query = () -> {
+            Fragment fragment = getSupportFragmentManager().findFragmentByTag(SEARCH_FRAGMENT_TAG);
+            if (!(fragment instanceof ProfileSearchFragment)) return;
+
+            ((ProfileSearchFragment) fragment).setQueryText(newText);
+            binding.searchbar.setShowSearchProgress(false);
+        };
+
+        mQueries.addLast(query);
+        mQueryHandler.postDelayed(query, 500);
+
+        return true;
+    }
+
+    private void clearPendingQueries() {
+        int count = mQueries.size();
+
+        for (; count > 0; count--) {
+            Runnable r = mQueries.pollFirst();
+            if (r != null) mQueryHandler.removeCallbacks(r);
+        }
     }
 
     private void initializeRemoteConfig() {
@@ -180,6 +255,18 @@ public class HomeActivity extends AppCompatActivity
     }
 
     @Override
+    public void onBackPressed() {
+        FragmentManager manager = getSupportFragmentManager();
+        Fragment fragment = manager.findFragmentByTag(SEARCH_FRAGMENT_TAG);
+        if (fragment != null) {
+            manager.beginTransaction().remove(fragment).commit();
+            binding.fabAddProfile.show();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
 
@@ -229,28 +316,6 @@ public class HomeActivity extends AppCompatActivity
         dialog.show(getSupportFragmentManager(), getString(R.string.add_profile_dialog_tag));
     }
 
-    @SuppressWarnings({"unused", "SameParameterValue"})
-    private void generateDummyProfiles(int howMany) {
-        if (LOG_V) Log.v(LOG_TAG, "Generating " + howMany + " dummy profiles");
-        long startTime = System.currentTimeMillis();
-
-        for (int i = 0; i < howMany; i++) {
-            int odds1 = Math.random() > 0.5 ? 1 : 2;
-            int odds2 = Math.random() > 0.5 ? 1 : 2;
-
-            int rand1 = (int) (Math.random() * 40);
-            int rand2 = (int) (Math.random() * 12);
-            int rand3 = (int) (Math.random() * 28);
-
-            int extension = (int) (Math.random() * (odds1 == 1 ? 100000 : 50000));
-            onProfileInfoSubmit(Request.REQUEST_NEW_PROFILE_INFO, null, ("Dummy " + (i + extension)),
-                    new Birthday(1975 + (odds2 == 1 ? rand1 : (-rand1)), Math.round(rand2), Math.round(rand3)));
-        }
-
-        long requiredTime = System.currentTimeMillis() - startTime;
-        if (LOG_D) Log.d(LOG_TAG, "It took " + requiredTime + " milliseconds to generate them");
-    }
-
     @Override
     public void onProfileInfoSubmit(int requestCode, Avatar avatar, @NonNull String name, @NonNull Birthday dateOfBirth) {
         Profile profile = createProfile(avatar, name, dateOfBirth);
@@ -259,42 +324,6 @@ public class HomeActivity extends AppCompatActivity
         if (requestCode == REQUEST_FIRST_PROFILE_INFO) {
             mProfileManager.pinProfile(profile.getId(), true);
         }
-    }
-
-    @Override
-    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
-        mAdapter.refreshAge(profileId);
-    }
-
-    @Override
-    public void onProfileNameChanged(int profileId, @NonNull String newName, String previousName) {
-        mAdapter.refreshName(profileId);
-    }
-
-    @Override
-    public void onProfileAvatarChanged(int profileId, Avatar newAvatar, Avatar previousAvatar) {
-        mAdapter.refreshAvatar(profileId);
-    }
-
-    @Override
-    public void onProfilePinned(int profileId, boolean isPinned) {
-        Group dest = hasUpcomingBirthday(mProfileManager.getProfileById(profileId)) ?
-                Group.UPCOMING : (isPinned ? Group.PINNED : Group.MORE);
-        int newPosition = 0;
-
-        if (dest == Group.UPCOMING && !isPinned) {
-            ArrayList<Profile> pinnedProfiles = mProfileManager.getPinnedProfiles();
-            newPosition = extractProfilesWithUpcomingBirthdays(pinnedProfiles, false).size();
-        }
-
-        Profile profile = mProfileManager.getProfileById(profileId);
-        if (!mAdapter.hasSection(dest)) {
-            mAdapter.addSection(dest, createInitSection(dest));
-        }
-        mAdapter.moveItem(profile, dest, newPosition);
-
-        binding.profilesContainer.scrollToPosition(mAdapter.getProfilePos(profile)
-                - (dest == Group.UPCOMING && isPinned ? 1 : 0));
     }
 
     @Override
@@ -323,6 +352,42 @@ public class HomeActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onProfileAvatarChanged(int profileId, Avatar newAvatar, Avatar previousAvatar) {
+        mAdapter.refreshAvatar(profileId);
+    }
+
+    @Override
+    public void onProfileNameChanged(int profileId, @NonNull String newName, String previousName) {
+        mAdapter.refreshName(profileId);
+    }
+
+    @Override
+    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+        mAdapter.refreshAge(profileId);
+    }
+
+    @Override
+    public void onProfilePinned(int profileId, boolean isPinned) {
+        Group dest = hasUpcomingBirthday(mProfileManager.getProfileById(profileId)) ?
+                Group.UPCOMING : (isPinned ? Group.PINNED : Group.MORE);
+        int newPosition = 0;
+
+        if (dest == Group.UPCOMING && !isPinned) {
+            ArrayList<Profile> pinnedProfiles = mProfileManager.getPinnedProfiles();
+            newPosition = extractProfilesWithUpcomingBirthday(pinnedProfiles, false).size();
+        }
+
+        Profile profile = mProfileManager.getProfileById(profileId);
+        if (!mAdapter.hasSection(dest)) {
+            mAdapter.addSection(dest, createInitSection(dest));
+        }
+        mAdapter.moveItem(profile, dest, newPosition);
+
+        binding.profilesContainer.scrollToPosition(mAdapter.getProfilePos(profile)
+                - (dest == Group.UPCOMING && isPinned ? 1 : 0));
+    }
+
     @NotNull
     private Profile createProfile(@Nullable Avatar avatar, String name, Birthday birthday) {
         Profile profile = new Profile(name, birthday);
@@ -331,29 +396,8 @@ public class HomeActivity extends AppCompatActivity
         return profile;
     }
 
-    private void refreshProfiles() {
-        if (!binding.profilesRefresher.isRefreshing())
-            binding.profilesRefresher.setRefreshing(true);
-
-        initializeProfileViewsAdapter();
-        binding.profilesContainer.setAdapter(mAdapter);
-
-        binding.profilesRefresher.setRefreshing(false);
-    }
-
-    private boolean hasUpcomingBirthday(@NotNull Profile profile) {
-        Calendar c = Calendar.getInstance();
-        return CommonUtilities.calculateDaysLeftForBirthday(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH),
-                profile.getBirthday(), CalendarUtils.MODE_DAY)[CalendarUtils.DAY] <= MIN_UPCOMING_DURATION_DAYS;
-    }
-
-    private void initializeProfileViewsAdapter() {
-        mAdapter = new ProfileListAdapter<>(this, createGroupMap());
-        mAdapter.setRespectSectionOrder(true);
-    }
-
     @NotNull
-    private ArrayList<Profile> extractProfilesWithUpcomingBirthdays(@NotNull ArrayList<Profile> source, boolean removeFromSource) {
+    private ArrayList<Profile> extractProfilesWithUpcomingBirthday(@NotNull ArrayList<Profile> source, boolean removeFromSource) {
         ArrayList<Profile> upcoming = new ArrayList<>();
 
         int sourceSize = source.size();
@@ -371,49 +415,10 @@ public class HomeActivity extends AppCompatActivity
         return upcoming;
     }
 
-    @NonNull
-    @Contract("_ -> new")
-    private ProfilesGroup createInitSection(@NotNull Group group) {
-        switch (group) {
-            case PINNED:
-                return new ProfilesGroup(new HeaderItem(getString(R.string.pinned)), new ArrayList<>());
-            case UPCOMING:
-                return new ProfilesGroup(new HeaderItem(getString(R.string.upcoming_birthday)), new ArrayList<>());
-            case MORE:
-                return new ProfilesGroup(new HeaderItem(getString(R.string.more)), new ArrayList<>());
-        }
-
-        throw new IllegalArgumentException("Unsupported group: " + group);
-    }
-
-    @NotNull
-    private LinkedHashMap<Group, ProfilesGroup> createGroupMap() {
-        ArrayList<Profile> pinnedProfiles = mProfileManager.getPinnedProfiles();
-        ArrayList<Profile> unpinnedProfiles = mProfileManager.getUnpinnedProfiles();
-        ArrayList<Profile> upcomingBdaysProfile = extractProfilesWithUpcomingBirthdays(pinnedProfiles, true);
-        upcomingBdaysProfile.addAll(extractProfilesWithUpcomingBirthdays(unpinnedProfiles, true));
-
-        LinkedHashMap<Group, ProfilesGroup> sectionMap = new LinkedHashMap<>();
-        if (pinnedProfiles.size() > 0)
-            sectionMap.put(Group.PINNED, new ProfilesGroup(new HeaderItem(getString(R.string.pinned)), pinnedProfiles));
-        if (upcomingBdaysProfile.size() > 0)
-            sectionMap.put(Group.UPCOMING, new ProfilesGroup(new HeaderItem(getString(R.string.upcoming_birthday)), upcomingBdaysProfile));
-        if (unpinnedProfiles.size() > 0)
-            sectionMap.put(Group.MORE, new ProfilesGroup(new HeaderItem(getString(R.string.more)), unpinnedProfiles));
-
-        return sectionMap;
-    }
-
-    @NotNull
-    @Contract(pure = true)
-    private String generateFeedbackMessage() {
-        return "\n\nWrite above this line" +
-                "\nDevice: " +
-                Build.MODEL +
-                "\nAPI level: " +
-                Build.VERSION.SDK_INT +
-                "\nBuild version " +
-                BuildConfig.VERSION_CODE;
+    private boolean hasUpcomingBirthday(@NotNull Profile profile) {
+        Calendar c = Calendar.getInstance();
+        return CommonUtilities.calculateDaysLeftForBirthday(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH),
+                profile.getBirthday(), CalendarUtils.MODE_DAY)[CalendarUtils.DAY] <= MIN_UPCOMING_DURATION_DAYS;
     }
 
     @Override
@@ -437,6 +442,88 @@ public class HomeActivity extends AppCompatActivity
 
         mWelcomeBinding = ViewWelcomeBinding.bind(binding.welcomeView.inflate());
         mWelcomeBinding.setupFirstProfile.setOnClickListener(this::showAddProfileDialog);
+    }
+
+    private void initializeProfileViewsAdapter() {
+        mAdapter = new ProfileListAdapter<>(this, createGroupMap());
+        mAdapter.setRespectSectionOrder(true);
+    }
+
+    @NonNull
+    @Contract("_ -> new")
+    private ProfilesGroup createInitSection(@NotNull Group group) {
+        switch (group) {
+            case PINNED:
+                return new ProfilesGroup(new HeaderItem(getString(R.string.pinned)), new ArrayList<>());
+            case UPCOMING:
+                return new ProfilesGroup(new HeaderItem(getString(R.string.upcoming_birthday)), new ArrayList<>());
+            case MORE:
+                return new ProfilesGroup(new HeaderItem(getString(R.string.more)), new ArrayList<>());
+        }
+
+        throw new IllegalArgumentException("Unsupported group: " + group);
+    }
+
+    @NotNull
+    private LinkedHashMap<Group, ProfilesGroup> createGroupMap() {
+        ArrayList<Profile> pinnedProfiles = mProfileManager.getPinnedProfiles();
+        ArrayList<Profile> unpinnedProfiles = mProfileManager.getUnpinnedProfiles();
+        ArrayList<Profile> upcomingBdaysProfile = extractProfilesWithUpcomingBirthday(pinnedProfiles, true);
+        upcomingBdaysProfile.addAll(extractProfilesWithUpcomingBirthday(unpinnedProfiles, true));
+
+        LinkedHashMap<Group, ProfilesGroup> sectionMap = new LinkedHashMap<>();
+        if (pinnedProfiles.size() > 0)
+            sectionMap.put(Group.PINNED, new ProfilesGroup(new HeaderItem(getString(R.string.pinned)), pinnedProfiles));
+        if (upcomingBdaysProfile.size() > 0)
+            sectionMap.put(Group.UPCOMING, new ProfilesGroup(new HeaderItem(getString(R.string.upcoming_birthday)), upcomingBdaysProfile));
+        if (unpinnedProfiles.size() > 0)
+            sectionMap.put(Group.MORE, new ProfilesGroup(new HeaderItem(getString(R.string.more)), unpinnedProfiles));
+
+        return sectionMap;
+    }
+
+    private void refreshProfiles() {
+        if (!binding.profilesRefresher.isRefreshing())
+            binding.profilesRefresher.setRefreshing(true);
+
+        initializeProfileViewsAdapter();
+        binding.profilesContainer.setAdapter(mAdapter);
+
+        binding.profilesRefresher.setRefreshing(false);
+    }
+
+    @SuppressWarnings({"unused", "SameParameterValue"})
+    private void generateDummyProfiles(int howMany) {
+        if (LOG_V) Log.v(LOG_TAG, "Generating " + howMany + " dummy profiles");
+        long startTime = System.currentTimeMillis();
+
+        for (int i = 0; i < howMany; i++) {
+            int odds1 = Math.random() > 0.5 ? 1 : 2;
+            int odds2 = Math.random() > 0.5 ? 1 : 2;
+
+            int rand1 = (int) (Math.random() * 40);
+            int rand2 = (int) (Math.random() * 12);
+            int rand3 = (int) (Math.random() * 28);
+
+            int extension = (int) (Math.random() * (odds1 == 1 ? 100000 : 50000));
+            onProfileInfoSubmit(Request.REQUEST_NEW_PROFILE_INFO, null, ("Dummy " + (i + extension)),
+                    new Birthday(1975 + (odds2 == 1 ? rand1 : (-rand1)), Math.round(rand2), Math.round(rand3)));
+        }
+
+        long requiredTime = System.currentTimeMillis() - startTime;
+        if (LOG_D) Log.d(LOG_TAG, "It took " + requiredTime + " milliseconds to generate them");
+    }
+
+    @NotNull
+    @Contract(pure = true)
+    private String generateFeedbackMessage() {
+        return "\n\nDescribe the issue or suggestion above this line" +
+                "\nDevice: " +
+                Build.MODEL +
+                "\nAPI level: " +
+                Build.VERSION.SDK_INT +
+                "\nBuild version: " +
+                BuildConfig.VERSION_CODE;
     }
 
     private enum Group {

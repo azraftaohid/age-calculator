@@ -2,6 +2,8 @@ package thegoodcompany.aetate.utilities;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+
 import org.jetbrains.annotations.NotNull;
 
 import thegoodcompany.aetate.R;
@@ -12,11 +14,15 @@ public class DateStringUtils {
         return context.getString(R.string.set_birthday_hint);
     }
 
+    public static String formatDateAbbrev(@NonNull Context context, int year, int month, int day) {
+        return context.getString(R.string.long_date_format, Month.values()[month].getShortName(), day, year);
+    }
+
     /**
      * Month values are zero based; so January is 0
      */
     @NotNull
-    public static String formatDate(@NotNull Context context, int year, int month, int day) {
+    public static String formatDateShort(@NotNull Context context, int year, int month, int day) {
         return context.getString(R.string.short_date_format, month + 1, day, year);
     }
 

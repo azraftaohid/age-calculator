@@ -15,11 +15,11 @@ public class ProfileManagerInterface {
     }
 
     public interface OnProfileUpdatedListener {
-        void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay);
+        void onProfileAvatarChanged(int profileId, @Nullable Avatar newAvatar, @Nullable Avatar previousAvatar);
 
         void onProfileNameChanged(int profileId, @NonNull String newName, String previousName);
 
-        void onProfileAvatarChanged(int profileId, @Nullable Avatar newAvatar, @Nullable Avatar previousAvatar);
+        void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay);
     }
 
     public interface OnProfileRemovedListener {

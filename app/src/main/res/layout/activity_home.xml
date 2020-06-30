@@ -13,10 +13,10 @@
         android:layout_height="wrap_content"
         app:scrollBehavior="collapseToolbar">
 
-        <!--        <com.microsoft.fluentui.search.Searchbar-->
-        <!--            android:id="@+id/searchbar"-->
-        <!--            android:layout_width="match_parent"-->
-        <!--            android:layout_height="wrap_content" />-->
+        <com.microsoft.fluentui.search.Searchbar
+            android:id="@+id/searchbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
     </com.microsoft.fluentui.appbarlayout.AppBarLayout>
 
@@ -26,7 +26,7 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.recyclerview.widget.RecyclerView
+        <com.microsoft.fluentui.view.MSRecyclerView
             android:id="@+id/profiles_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -55,5 +55,11 @@
         android:layout_gravity="center"
         android:inflatedId="@+id/inflated_welcome_view"
         android:layout="@layout/view_welcome" />
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/search_result_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -186,64 +186,6 @@ public class ProfileManager implements ProfileManagerInterface.OnProfileUpdatedL
     }
 
     @Override
-    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
-        if (LOG_V)
-            Log.v(LOG_TAG, "Setting new date of birth in json for profile w/ ID " + profileId);
-
-        JSONObject object = getJsonProfile(profileId);
-        assert object != null : "No json object for profile w/ ID " + profileId + " was found";
-
-        try {
-            object.put(Profile.KEY_BIRTH_YEAR, newBirthYear);
-            object.put(Profile.KEY_BIRTH_MONTH, newBirthMonth);
-            object.put(Profile.KEY_BIRTH_DAY, newBirthDay);
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "Error updating json object for profile w/ ID " + profileId);
-            e.printStackTrace();
-        }
-
-        updatePreference();
-        triggerProfileDateOfBirthUpdated(profileId, newBirthYear, newBirthMonth, newBirthDay, previousBirthDay);
-    }
-
-    @Override
-    public void onProfileNameChanged(int profileId, @NonNull String newName, String previousName) {
-        if (LOG_V)
-            Log.v(LOG_TAG, "Name changed from " + previousName + " to " + newName + " for profile w/ ID " + profileId);
-
-        JSONObject object = getJsonProfile(profileId);
-        assert object != null : "No json object for profile w/ ID " + profileId + " was found";
-
-        try {
-            object.put(Profile.KEY_NAME, newName);
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "Error updating json object for profile w/ ID " + profileId);
-            e.printStackTrace();
-        }
-
-        updatePreference();
-        TriggerProfileNameChanged(profileId, newName, previousName);
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    public ArrayList<Integer> getProfileIds() {
-        ArrayList<Integer> ids = new ArrayList<>();
-
-        for (Profile profile : mProfiles) {
-            ids.add(profile.getId());
-        }
-
-        Log.i(LOG_TAG, "Currently associated IDs: " + ids);
-
-        return ids;
-    }
-
-    @SuppressWarnings("unused")
-    public ArrayList<Profile> getProfiles() {
-        return mProfiles;
-    }
-
-    @Override
     public void onProfileAvatarChanged(int profileId, Avatar newAvatar, Avatar previousAvatar) {
         if (LOG_V) Log.v(LOG_TAG, "Avatar changed for profile w/ ID: " + profileId);
 
@@ -266,6 +208,64 @@ public class ProfileManager implements ProfileManagerInterface.OnProfileUpdatedL
 
         updatePreference();
         triggerProfileAvatarChanged(profileId, newAvatar, previousAvatar);
+    }
+
+    @Override
+    public void onProfileNameChanged(int profileId, @NonNull String newName, String previousName) {
+        if (LOG_V)
+            Log.v(LOG_TAG, "Name changed from " + previousName + " to " + newName + " for profile w/ ID " + profileId);
+
+        JSONObject object = getJsonProfile(profileId);
+        assert object != null : "No json object for profile w/ ID " + profileId + " was found";
+
+        try {
+            object.put(Profile.KEY_NAME, newName);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "Error updating json object for profile w/ ID " + profileId);
+            e.printStackTrace();
+        }
+
+        updatePreference();
+        TriggerProfileNameChanged(profileId, newName, previousName);
+    }
+
+    @Override
+    public void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay) {
+        if (LOG_V)
+            Log.v(LOG_TAG, "Setting new date of birth in json for profile w/ ID " + profileId);
+
+        JSONObject object = getJsonProfile(profileId);
+        assert object != null : "No json object for profile w/ ID " + profileId + " was found";
+
+        try {
+            object.put(Profile.KEY_BIRTH_YEAR, newBirthYear);
+            object.put(Profile.KEY_BIRTH_MONTH, newBirthMonth);
+            object.put(Profile.KEY_BIRTH_DAY, newBirthDay);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "Error updating json object for profile w/ ID " + profileId);
+            e.printStackTrace();
+        }
+
+        updatePreference();
+        triggerProfileDateOfBirthUpdated(profileId, newBirthYear, newBirthMonth, newBirthDay, previousBirthDay);
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public ArrayList<Integer> getProfileIds() {
+        ArrayList<Integer> ids = new ArrayList<>();
+
+        for (Profile profile : mProfiles) {
+            ids.add(profile.getId());
+        }
+
+        Log.i(LOG_TAG, "Currently associated IDs: " + ids);
+
+        return ids;
+    }
+
+    @SuppressWarnings("unused")
+    public ArrayList<Profile> getProfiles() {
+        return mProfiles;
     }
 
     public void pinProfile(int profileId, boolean isPinned) {
@@ -389,6 +389,29 @@ public class ProfileManager implements ProfileManagerInterface.OnProfileUpdatedL
         updatePreference();
 
         triggerProfileRemoved(profile, removedTags);
+    }
+
+    public ArrayList<Profile> query(@NonNull String queryText) {
+        final int searchLimit = 15;
+        int profileCount = mProfiles.size();
+        int foundCount = 0;
+
+        ArrayList<Profile> result = new ArrayList<>();
+
+        String regex = "[^a-z0-9]";
+        String keyword = queryText.toLowerCase().replaceAll(regex, "");
+
+        for (int i = 0; foundCount <= searchLimit && i < profileCount; i++) {
+            Profile profile = mProfiles.get(i);
+            if (profile.getName().toLowerCase().replaceAll(regex, "")
+                    .contains(keyword)) {
+
+                result.add(profile);
+                foundCount++;
+            }
+        }
+
+        return result;
     }
 
     private JSONObject getJsonProfile(int profileId) {

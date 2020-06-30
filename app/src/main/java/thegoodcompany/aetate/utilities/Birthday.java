@@ -1,5 +1,7 @@
 package thegoodcompany.aetate.utilities;
 
+import java.util.Objects;
+
 public class Birthday {
     private int mMonth;
     private int mDay;
@@ -43,5 +45,26 @@ public class Birthday {
         mMonth = monthIntValue;
 
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Birthday)) return false;
+        Birthday birthday = (Birthday) o;
+        return mMonth == birthday.mMonth &&
+                mDay == birthday.mDay &&
+                mYear == birthday.mYear;
+    }
+
+    public boolean equals(int year, int month, int day) {
+        return mMonth == month &&
+                mDay == day &&
+                mYear == year;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mMonth, mDay, mYear);
     }
 }
