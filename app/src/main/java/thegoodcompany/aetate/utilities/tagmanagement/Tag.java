@@ -1,12 +1,15 @@
 package thegoodcompany.aetate.utilities.tagmanagement;
 
+import androidx.annotation.NonNull;
+
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-enum Tag {
+public enum Tag {
     PIN("Pinned");
 
     static final String TAG_NAME_KEY = "tag.NAME";
@@ -32,12 +35,13 @@ enum Tag {
         return mProfileIds.get(index);
     }
 
+    @NonNull
     ArrayList<Integer> getProfileIds() {
         return mProfileIds;
     }
 
-    void removeProfile(int profileId) {
-        mProfileIds.remove(Integer.valueOf(profileId));
+    boolean removeProfile(int profileId) {
+        return mProfileIds.remove(Integer.valueOf(profileId));
     }
 
     @SuppressWarnings("unused")
@@ -49,6 +53,7 @@ enum Tag {
         return mSimpleName;
     }
 
+    @NotNull
     @SuppressWarnings("unused")
     JSONObject toJsonObject() {
         JSONObject object = new JSONObject();
@@ -63,6 +68,7 @@ enum Tag {
         return object;
     }
 
+    @NotNull
     JSONObject initializerToJsonObject() {
         JSONObject object = new JSONObject();
 

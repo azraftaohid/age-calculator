@@ -1,67 +1,46 @@
 package thegoodcompany.aetate.utilities;
 
-import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.text.Editable;
-import android.util.Log;
-import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 
+import androidx.annotation.AttrRes;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
+
+import com.microsoft.fluentui.util.ThemeUtil;
+import com.microsoft.fluentui.util.ThemeUtilsKt;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Calendar;
 
-@SuppressWarnings({"unused"})
+import thegoodcompany.aetate.R;
+import thegoodkid.common.utils.CalendarUtils;
+
 public class CommonUtilities {
-    private static final String LOG_TAG = CommonUtilities.class.getSimpleName();
+    @NonNull
+    public static ImageView createCustomView(@NonNull Context context, @DrawableRes int drawableId, @AttrRes int tint) {
+        ImageView view = new ImageView(context);
+        view.setImageDrawable(getTintedDrawable(context, drawableId, tint));
 
-    public static boolean hideSoftKeyboard(@NonNull Activity activity, View view) {
-        view.clearFocus();
-        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            if (!imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS)) {
-                Log.e(LOG_TAG, "Couldn't hide soft input");
-                return false;
-            }
-            return true;
-        }
-
-        Log.e(LOG_TAG, "Couldn't get input method manager");
-        return false;
+        return view;
     }
 
-    public static boolean showSoftKeyboard(@NonNull Activity activity, View view) {
-        if (view.requestFocus()) Log.w(LOG_TAG, "Couldn't request focus");
+    public static Drawable getTintedDrawable(@NotNull Context context, @DrawableRes int drawableId, @AttrRes int tint) {
+        Drawable drawable = context.getDrawable(drawableId);
+        if (drawable != null) drawable.setTint(ThemeUtil.INSTANCE.getThemeAttrColor(context, tint));
 
-        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (imm != null) {
-            if (imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)) return true;
-
-            Log.e(LOG_TAG, "Couldn't show soft input");
-            return false;
-        }
-
-        Log.e(LOG_TAG, "Couldn't get input method manager");
-        return false;
+        return drawable;
     }
 
-    public static void showSoftKeyboard(@NonNull Window window, View view) {
-        if (!view.requestFocus()) Log.w(LOG_TAG, "Couldn't request focus");
-        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+    public static Drawable createNavigationBackDrawable(@NonNull Context context) {
+        return ThemeUtilsKt.getTintedDrawable(context, R.drawable.ic_fluent_arrow_left_24_regular,
+                ThemeUtil.INSTANCE.getThemeAttrColor(context, R.attr.fluentuiToolbarIconColor));
     }
 
-    public static ImageView generateCustomAccessoryView(Context context, int drawableId) {
-        final ImageView imageView = new ImageView(context);
-        imageView.setImageDrawable(context.getDrawable(drawableId));
-        imageView.setClickable(true);
-        imageView.setFocusable(true);
-        return imageView;
-    }
-
-    public static boolean isValidDateFormat(Editable date) {
+    public static boolean isValidDateFormat(@NotNull Editable date) {
         String[] dates = date.toString().split("/");
         Calendar c = Calendar.getInstance();
         int thisDay = c.get(Calendar.DAY_OF_MONTH);
@@ -74,7 +53,7 @@ public class CommonUtilities {
             int year = Integer.parseInt(dates[2]);
 
             Month enumMonth = Month.values()[month - 1];
-            if (Age.isLeapYear(year) && month == 2) {
+            if (CalendarUtils.isLeapYear(year) && month == 2) {
                 if (day < 1 || day > 29) return false;
             } else if (day < 1 || day > enumMonth.getNumberOfDays()) {
                 return false;
@@ -95,7 +74,35 @@ public class CommonUtilities {
         return true;
     }
 
-    public static boolean isValidName(Editable name) {
+    public static boolean isValidName(@NotNull Editable name) {
         return name.length() > 0;
+    }
+
+    @NotNull
+    public static int[] createCalendarAppendants() {
+        int[] appendants = new int[CalendarUtils.getFieldsCount()];
+
+        appendants[CalendarUtils.DAY] = R.plurals.suffix_day;
+        appendants[CalendarUtils.MONTH] = R.plurals.suffix_month;
+        appendants[CalendarUtils.YEAR] = R.plurals.suffix_year;
+        appendants[CalendarUtils.MINUTE] = R.plurals.suffix_minute;
+        appendants[CalendarUtils.HOUR] = R.plurals.suffix_hour;
+        appendants[CalendarUtils.SECOND] = R.plurals.suffix_second;
+
+        return appendants;
+    }
+
+    @NonNull
+    public static long[] calculateDaysLeftForBirthday(int relativeToYear, int relativeToMonth, int relativeToDay, @NonNull Birthday birthday, int mode) {
+        long[] daysLeftForBirthday;
+        if (birthday.getMonthValue() < relativeToMonth || (birthday.getMonthValue() == relativeToMonth && birthday.getDayOfMonth() < relativeToDay)) {
+            daysLeftForBirthday = CalendarUtils.calculateIntervals(relativeToYear, relativeToMonth, relativeToDay,
+                    relativeToYear + 1, birthday.getMonthValue(), birthday.getDayOfMonth(), mode);
+        } else {
+            daysLeftForBirthday = CalendarUtils.calculateIntervals(relativeToYear, relativeToMonth, relativeToDay,
+                    relativeToYear, birthday.getMonthValue(), birthday.getDayOfMonth(), mode);
+        }
+
+        return daysLeftForBirthday;
     }
 }

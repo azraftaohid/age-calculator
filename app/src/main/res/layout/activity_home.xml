@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".ui.HomeActivity">
+
+    <com.microsoft.fluentui.appbarlayout.AppBarLayout
+        android:id="@+id/app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:scrollBehavior="collapseToolbar">
+
+        <!--        <com.microsoft.fluentui.search.Searchbar-->
+        <!--            android:id="@+id/searchbar"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="wrap_content" />-->
+
+    </com.microsoft.fluentui.appbarlayout.AppBarLayout>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/profiles_refresher"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/profiles_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_add_profile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="@dimen/default_layout_margin"
+        android:layout_marginBottom="@dimen/fab_margin_bottom"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="showAddProfileDialog"
+        android:src="@drawable/ic_fluent_person_add_24_selector"
+        android:tint="?attr/fluentuiForegroundOnPrimaryColor"
+        app:fabSize="normal" />
+
+    <ViewStub
+        android:id="@+id/welcome_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:inflatedId="@+id/inflated_welcome_view"
+        android:layout="@layout/view_welcome" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

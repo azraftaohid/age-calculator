@@ -4,145 +4,168 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import thegoodcompany.aetate.utilities.profilemanagement.ProfileManagerInterface;
-
-import static thegoodcompany.aetate.ui.MainActivity.LOG_D;
-import static thegoodcompany.aetate.ui.MainActivity.LOG_V;
-import static thegoodcompany.aetate.ui.MainActivity.LOG_W;
+import static thegoodcompany.aetate.utilities.Logging.LOG_D;
+import static thegoodcompany.aetate.utilities.Logging.LOG_V;
 
 public class TagManager {
-    public static final int TAG_PIN = 0;
-    public static final int NO_TAG = -1;
+    public static final int TAG_NONE = -1;
+    public static final int TAG_PIN = Tag.PIN.ordinal();
 
     private static final String LOG_TAG = TagManager.class.getSimpleName();
-    @SuppressWarnings("unused")
-    private static final String LOG_TAG_PERFORMANCE = LOG_TAG + ".performance";
+    private static final String PERFORMANCE_TAG = LOG_TAG + ".performance";
+
+    private static TagManager instance;
+
     private static final String PREF_KEY = "thegoodcompany.aetate.pref.TAGMANAGER";
     private static final String TAGS_KEY = "thegoodcompany.aetate.pref.TAGMANAGER.TAGS";
-
-    private Context mContext;
-    private JSONArray mTaggedProfilesJson = new JSONArray();
-    private SharedPreferences mPref;
+    private SharedPreferences mPreference;
+    private JSONArray mTaggedArray = new JSONArray();
+    private ArrayList<OnTaggedListener> mOnTaggedListeners = new ArrayList<>();
 
     private TagManager(Context context) {
         if (LOG_V) Log.v(LOG_TAG, "Constructing a new Tag Manager");
 
-        mContext = context;
-        mPref = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE);
+        mPreference = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE);
     }
 
+    @NonNull
     public static TagManager getTagManager(Context context) {
-        if (LOG_V) Log.v(LOG_TAG, "Retrieving Tag Manager");
-        TagManager tagManager = new TagManager(context);
+        if (instance == null) {
+            if (LOG_V) Log.v(LOG_TAG, "Retrieving Tag Manager");
+            instance = new TagManager(context);
 
-        SharedPreferences pref = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE);
+            if (instance.mPreference.contains(TAGS_KEY)) {
+                try {
+                    instance.mTaggedArray = new JSONArray(instance.mPreference.getString(TAGS_KEY, ""));
+                    if (LOG_D)
+                        Log.d(LOG_TAG, "Found tagged record: " + instance.mTaggedArray.toString(4));
 
-        if (pref.contains(TAGS_KEY)) {
-            try {
-                tagManager.mTaggedProfilesJson = new JSONArray(pref.getString(TAGS_KEY, ""));
-                if (LOG_D)
-                    Log.d(LOG_TAG, "Found tag record: " + tagManager.mTaggedProfilesJson.toString(4));
+                    for (int i = 0; i < instance.mTaggedArray.length(); i++) {
+                        JSONObject object = instance.mTaggedArray.getJSONObject(i);
 
-                for (int i = 0; i < tagManager.mTaggedProfilesJson.length(); i++) {
-                    JSONObject object = tagManager.mTaggedProfilesJson.getJSONObject(i);
-
-                    Tag tag = Tag.values()[object.getInt(Tag.TAG_NAME_KEY)];
-                    JSONArray ids = object.getJSONArray(Tag.PROFILE_IDS_KEY);
-                    for (int i2 = 0; i2 < ids.length(); i2++) {
-                        int id = ids.getInt(i2);
-                        if (tag.getProfileIds().contains(id)) {
-                            tag.removeProfile(id);
+                        Tag tag = Tag.values()[object.getInt(Tag.TAG_NAME_KEY)];
+                        JSONArray ids = object.getJSONArray(Tag.PROFILE_IDS_KEY);
+                        for (int i2 = 0; i2 < ids.length(); i2++) {
+                            int id = ids.getInt(i2);
+                            if (tag.getProfileIds().contains(id)) {
+                                tag.removeProfile(id);
+                            }
+                            tag.addProfile(id);
                         }
-                        tag.addProfile(id);
                     }
+
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, "Couldn't parse tagged ids into json array");
+                    e.printStackTrace();
                 }
+            } else {
+                if (LOG_V) Log.v(LOG_TAG, "No record found for tagged profile");
 
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "Couldn't parse tagged ids into json array");
-                e.printStackTrace();
-            }
-        } else {
-            if (LOG_V) Log.v(LOG_TAG, "No record found of tagged profile");
-
-            for (Tag t : Tag.values()) {
-                tagManager.mTaggedProfilesJson.put(t.initializerToJsonObject());
+                for (Tag t : Tag.values()) {
+                    instance.mTaggedArray.put(t.initializerToJsonObject());
+                }
             }
         }
 
-
-        return tagManager;
+        return instance;
     }
 
-    public static ArrayList<Integer> getTaggedIds(int whichTag) {
-        return Tag.values()[whichTag].getProfileIds();
+    public static ArrayList<Integer> getTaggedIds(@NonNull Tag which) {
+        return which.getProfileIds();
     }
 
-    public void tagProfile(int profileId, int what) {
+    public void addOnTaggedListener(OnTaggedListener listener) {
+        mOnTaggedListeners.add(listener);
+    }
+
+    public void tagProfile(int profileId, Tag which) {
         if (LOG_V) Log.v(LOG_TAG, "Tagging profile w/ ID " + profileId);
 
-        Tag t = Tag.values()[what];
-        if (t.getProfileIds().contains(profileId)) {
-            removeTagFromProfile(profileId, what);
+        if (which.getProfileIds().contains(profileId)) {
+            removeTagFromProfile(profileId, which);
         }
 
-        t.addProfile(profileId);
+        which.addProfile(profileId);
 
         try {
-            mTaggedProfilesJson.getJSONObject(what).getJSONArray(Tag.PROFILE_IDS_KEY).put(profileId);
+            mTaggedArray.getJSONObject(which.ordinal()).getJSONArray(Tag.PROFILE_IDS_KEY).put(profileId);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "Unable to put profile w/ ID " + profileId + " into the tagged profiles json");
             e.printStackTrace();
         }
 
         updatePreference();
-
-        if (mContext instanceof ProfileManagerInterface.onProfilePinnedListener) {
-            if (what == TAG_PIN) {
-                ((ProfileManagerInterface.onProfilePinnedListener) mContext).onProfilePinned(profileId, true);
-            }
-        }
+        triggerOnTaggedListener(which, profileId);
     }
 
-    public void removeTagFromProfile(int profileId, int whichTag) {
-        Tag tag = Tag.values()[whichTag];
+    private boolean removeTagFromProfileSilent(int profileId, @NonNull Tag which) {
+        if (which.removeProfile(profileId)) {
+            try {
+                removeProfileFromJsonArray(profileId, mTaggedArray.getJSONObject(which.ordinal()).getJSONArray(Tag.PROFILE_IDS_KEY));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean removeTagFromProfile(int profileId, Tag which) {
         if (LOG_V)
-            Log.v(LOG_TAG, "Removing " + tag.getSimpleName() + " tag from profile w/ ID " + profileId);
+            Log.v(LOG_TAG, "Removing " + which.getSimpleName() + " tag from profile w/ ID " + profileId);
 
-        if (!tag.getProfileIds().contains(profileId)) {
-            if (LOG_W)
-                Log.w(LOG_TAG, "Profile w/ ID " + profileId + " wasn't tagged with " + tag.getSimpleName());
-            return;
-        }
-
-        tag.removeProfile(profileId);
-        try {
-            removeProfileFromJsonArray(profileId, mTaggedProfilesJson.getJSONObject(whichTag).getJSONArray(Tag.PROFILE_IDS_KEY));
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "Unable to remove profile w/ ID " + profileId + " into the tagged profiles json");
-            e.printStackTrace();
-        }
-
-
-        if (mContext instanceof ProfileManagerInterface.onProfilePinnedListener) {
-            if (whichTag == TAG_PIN) {
-                ((ProfileManagerInterface.onProfilePinnedListener) mContext).onProfilePinned(profileId, false);
+        if (which.removeProfile(profileId)) {
+            try {
+                removeProfileFromJsonArray(profileId, mTaggedArray.getJSONObject(which.ordinal()).getJSONArray(Tag.PROFILE_IDS_KEY));
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, "Unable to remove profile w/ ID " + profileId + " into the tagged profiles json");
+                e.printStackTrace();
             }
+
+            triggerOnTagRemovedListener(which, profileId);
+            return true;
         }
+
+        return false;
     }
 
-    public void removeAllTagsFromProfile(int profileId) {
+    public void removeAllTagsFromProfileSilent(int profileId) {
         for (Tag t : Tag.values()) {
-            removeTagFromProfile(profileId, t.ordinal());
+            removeTagFromProfileSilent(profileId, t);
         }
     }
 
-    private void removeProfileFromJsonArray(int profileId, JSONArray jsonArray) {
+    public List<Tag> removeAllTagsFromProfile(int profileId) {
+        ArrayList<Tag> removedTags = new ArrayList<>();
+        for (Tag t : Tag.values()) {
+            if (removeTagFromProfile(profileId, t)) removedTags.add(t);
+        }
+
+        return removedTags;
+    }
+
+    public List<Tag> prepareProfileForRemove(int profileId) {
+        ArrayList<Tag> removedTags = new ArrayList<>();
+        for (Tag t : Tag.values()) {
+            if (removeTagFromProfileSilent(profileId, t)) removedTags.add(t);
+        }
+
+        return removedTags;
+    }
+
+    private void removeProfileFromJsonArray(int profileId, @NotNull JSONArray jsonArray) {
         for (int i = 0; i < jsonArray.length(); i++) {
             try {
                 if (jsonArray.getInt(i) == profileId) {
@@ -163,16 +186,44 @@ public class TagManager {
     private void updatePreference() {
         if (LOG_V) {
             try {
-                Log.v(LOG_TAG, "Updating tags preference w/ " + mTaggedProfilesJson.toString(4));
+                Log.v(LOG_TAG, "Updating tags preference w/ " + mTaggedArray.toString(4));
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "Error logging statement");
                 e.printStackTrace();
             }
         }
 
-        SharedPreferences.Editor editor = mPref.edit();
-        editor.putString(TAGS_KEY, mTaggedProfilesJson.toString());
+        SharedPreferences.Editor editor = mPreference.edit();
+        editor.putString(TAGS_KEY, mTaggedArray.toString());
         editor.apply();
+    }
+
+    private void triggerOnTaggedListener(Tag which, int id) {
+        boolean needsCleanup = false;
+
+        for (OnTaggedListener listener : mOnTaggedListeners) {
+            if (listener != null) listener.onTagged(which, id);
+            else needsCleanup = true;
+        }
+
+        if (needsCleanup) mOnTaggedListeners.removeAll(Collections.singleton(null));
+    }
+
+    private void triggerOnTagRemovedListener(Tag which, int id) {
+        boolean needsCleanup = false;
+
+        for (OnTaggedListener listener : mOnTaggedListeners) {
+            if (listener != null) listener.onTagRemoved(which, id);
+            else needsCleanup = true;
+        }
+
+        if (needsCleanup) mOnTaggedListeners.removeAll(Collections.singleton(null));
+    }
+
+    public interface OnTaggedListener {
+        void onTagged(Tag which, int id);
+
+        void onTagRemoved(Tag which, int id);
     }
 
 }

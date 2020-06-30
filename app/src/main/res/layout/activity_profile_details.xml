@@ -1,93 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root_view_profile_details"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context="thegoodcompany.aetate.ui.ProfileDetailsActivity">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/srl_refresh_details"
+    <com.microsoft.fluentui.appbarlayout.AppBarLayout
+        android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="wrap_content"
+        android:elevation="4dp"
+        app:scrollBehavior="pin">
 
-
-        <LinearLayout
+        <RelativeLayout
+            android:id="@+id/profile_basic_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:divider="@drawable/ms_row_divider"
-            android:dividerPadding="4dp"
-            android:orientation="vertical"
-            android:showDividers="middle">
+            android:paddingStart="@dimen/fluentui_toolbar_title_margin_start_with_avatar"
+            android:paddingTop="24dp"
+            android:paddingEnd="@dimen/fluentui_toolbar_title_margin_start_with_avatar"
+            android:paddingBottom="24dp">
 
-            <com.microsoft.officeuifabric.persona.PersonaView
-                android:id="@+id/pv_subjected_profile"
-                android:layout_width="match_parent"
+            <com.microsoft.fluentui.persona.AvatarView
+                android:id="@+id/avatar"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:longClickable="false"
-                app:avatarSize="xxlarge" />
+                app:avatarSize="xxlarge"
+                tools:src="@tools:sample/avatars" />
 
-            <LinearLayout style="@style/details_section_container">
+            <TextView
+                android:id="@+id/name"
+                style="@style/TextAppearance.FluentUI.ToolbarTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/avatar"
+                android:layout_marginStart="@dimen/fluentui_toolbar_title_margin_start_with_avatar"
+                android:layout_marginTop="@dimen/related_views_margin"
+                android:layout_toEndOf="@id/avatar"
+                tools:text="@tools:sample/full_names" />
 
-                <TextView
-                    style="@style/details_section_title"
-                    android:text="@string/date_of_birth" />
+            <TextView
+                android:id="@+id/birthday"
+                style="@style/TextAppearance.FluentUI.ToolbarSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignStart="@id/name"
+                android:layout_alignBottom="@id/avatar"
+                android:layout_marginBottom="@dimen/related_views_margin"
+                tools:text="@tools:sample/date/mmddyy" />
 
-                <TextView
-                    android:id="@+id/tv_dob"
-                    style="@style/details_section_property" />
-            </LinearLayout>
+            <ImageButton
+                android:id="@+id/modify"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@id/name"
+                android:layout_marginStart="@dimen/default_view_margin"
+                android:layout_toEndOf="@id/name"
+                android:background="@drawable/ms_ripple_transparent_background"
+                android:contentDescription="@string/description_rename_profile"
+                android:src="@drawable/ic_fluent_edit_24_regular"
+                android:tint="?attr/fluentuiToolbarIconColor" />
+        </RelativeLayout>
 
-            <LinearLayout style="@style/details_section_container">
+    </com.microsoft.fluentui.appbarlayout.AppBarLayout>
 
-                <TextView
-                    style="@style/details_section_title"
-                    android:text="@string/next_birth_day_in" />
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/details_refresher"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-                <TextView
-                    android:id="@+id/tv_next_birthday_in"
-                    style="@style/details_section_property" />
-            </LinearLayout>
+        <com.microsoft.fluentui.view.MSRecyclerView
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:itemCount="6"
+            tools:listitem="@layout/view_list_item" />
 
-            <LinearLayout style="@style/details_section_container">
-
-                <TextView
-                    style="@style/details_section_title"
-                    android:text="@string/current_age" />
-
-                <TextView
-                    android:id="@+id/tv_age_year_month_days"
-                    style="@style/details_section_property" />
-
-                <TextView
-                    android:id="@+id/tv_age_year_days"
-                    style="@style/details_section_property" />
-
-                <TextView
-                    android:id="@+id/tv_age_month_days"
-                    style="@style/details_section_property" />
-
-                <TextView
-                    android:id="@+id/tv_age_days"
-                    style="@style/details_section_property" />
-
-                <TextView
-                    android:id="@+id/tv_age_hours"
-                    style="@style/details_section_property" />
-
-                <TextView
-                    android:id="@+id/tv_age_minutes"
-                    style="@style/details_section_property" />
-
-                <TextView
-                    android:id="@+id/tv_age_seconds"
-                    style="@style/details_section_property" />
-            </LinearLayout>
-        </LinearLayout>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

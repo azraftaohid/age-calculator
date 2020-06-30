@@ -7,8 +7,6 @@ import org.junit.Test;
 
 import java.util.Calendar;
 
-import thegoodcompany.aetate.utilities.Age;
-
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -38,7 +36,7 @@ public class AgeTest {
         start.set(Calendar.MONTH, 1);
         start.set(Calendar.DAY_OF_MONTH, 28);
 
-        assertThat(Age.getNumberOfLeapDays(start, c), is(equalTo(2)));
+        assertThat(Age.getLeapDaysBetween(start, c), is(equalTo(2)));
     }
 
     @Test

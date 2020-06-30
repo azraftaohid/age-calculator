@@ -1,27 +1,47 @@
 package thegoodcompany.aetate.utilities;
 
 public class Birthday {
-    public static final int YEAR = 0;
-    public static final int MONTH = 1;
-    public static final int DAY = 2;
-
-    private int[] mDateOfBirth = new int[3];
+    private int mMonth;
+    private int mDay;
+    private int mYear;
 
     public Birthday(int birthYear, int birthMonth, int birthDay) {
-        mDateOfBirth[YEAR] = birthYear;
-        mDateOfBirth[MONTH] = birthMonth;
-        mDateOfBirth[DAY] = birthDay;
+        mMonth = birthMonth;
+        mDay = birthDay;
+        mYear = birthYear;
     }
 
-    public int get(int field) {
-        return mDateOfBirth[field];
+    public int getMonthValue() {
+        return mMonth;
     }
 
-    public void set(int field, int value) {
-        mDateOfBirth[field] = value;
+    public int getDayOfMonth() {
+        return mDay;
+    }
+
+    public Birthday setDay(int dayOfMonth) {
+        mDay = dayOfMonth;
+
+        return this;
+    }
+
+    public int getYear() {
+        return mYear;
+    }
+
+    public Birthday setYear(int year) {
+        mYear = year;
+
+        return this;
     }
 
     public Month getMonth() {
-        return Month.values()[get(MONTH)];
+        return Month.values()[mMonth];
+    }
+
+    public Birthday setMonth(int monthIntValue) {
+        mMonth = monthIntValue;
+
+        return this;
     }
 }

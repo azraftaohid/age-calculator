@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="?attr/fluentuiDialogBackgroundColor"
     android:paddingTop="32dp">
 
     <ImageView
@@ -27,7 +28,7 @@
         android:scrollHorizontally="false"
         android:text="@string/app_description_wrapped"
         android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.UIFabric.Caption" />
+        android:textAppearance="@style/TextAppearance.FluentUI.Caption" />
 
     <Button
         android:id="@+id/bt_get_started"

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">@color/uifabric_communication_blue</color>
-    <color name="colorPrimaryDark">@color/uifabric_communication_blue</color>
-    <color name="colorAccent">@color/uifabric_communication_blue</color>
-    <color name="colorError">#B00020</color>
+    <color name="snackbar_drawable">@color/fluentui_white</color>
+    <color name="default_avatar_background">@color/fluentui_gray_700</color>
+    <color name="add_photo_background">@color/fluentui_communication_tint_20</color>
+    <color name="add_photo_foreground">@color/fluentui_gray_500</color>
 </resources>

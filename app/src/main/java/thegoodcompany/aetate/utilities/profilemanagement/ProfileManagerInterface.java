@@ -3,31 +3,34 @@ package thegoodcompany.aetate.utilities.profilemanagement;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.List;
+
 import thegoodcompany.aetate.utilities.Avatar;
 import thegoodcompany.aetate.utilities.Birthday;
+import thegoodcompany.aetate.utilities.tagmanagement.Tag;
 
 public class ProfileManagerInterface {
-    public interface onProfileAddedListener {
-        void onProfileAdded(Profile profile);
+    public interface OnProfileAddedListener {
+        void onProfileAdded(@NonNull Profile profile);
     }
 
-    public interface onProfileUpdatedListener {
+    public interface OnProfileUpdatedListener {
         void onProfileDateOfBirthUpdated(int profileId, int newBirthYear, int newBirthMonth, int newBirthDay, Birthday previousBirthDay);
 
-        void onProfileNameUpdated(int profileId, String newName, String previousName);
+        void onProfileNameChanged(int profileId, @NonNull String newName, String previousName);
 
-        void onProfileAvatarUpdated(int profileId, Avatar newAvatar, Avatar previousAvatar);
+        void onProfileAvatarChanged(int profileId, @Nullable Avatar newAvatar, @Nullable Avatar previousAvatar);
     }
 
-    public interface onProfileRemovedListener {
-        void onProfileRemoved(int profileId);
+    public interface OnProfileRemovedListener {
+        void onProfileRemoved(@NonNull Profile profile, List<Tag> removedTags);
     }
 
-    public interface onProfilePinnedListener {
+    public interface OnProfilePinnedListener {
         void onProfilePinned(int profileId, boolean isPinned);
     }
 
-    public interface updatable {
+    public interface Updatable {
         String getName();
 
         Birthday getBirthday();
@@ -35,10 +38,11 @@ public class ProfileManagerInterface {
         @Nullable
         Avatar getAvatar();
 
-        void updateName(String newName);
+        void updateName(@NonNull String newName);
 
         void updateBirthday(int newBirthYear, int newBirthMonth, int newBirthDay);
 
-        void updateAvatar(@NonNull Avatar newAvatar);
+        void updateAvatar(@Nullable Avatar newAvatar);
     }
+
 }

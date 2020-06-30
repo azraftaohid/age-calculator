@@ -2,6 +2,8 @@ package thegoodcompany.aetate.utilities;
 
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 public enum Month {
     JANUARY("Jan", 31),
     FEBRUARY("Feb", 28),
@@ -25,6 +27,7 @@ public enum Month {
         mNumberOfDays = numberOfDays;
     }
 
+    @Nullable
     @SuppressWarnings("unused")
     public Month getMonthByShortName(String name) {
         for (Month month : Month.values()) {

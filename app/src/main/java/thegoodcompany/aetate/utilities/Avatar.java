@@ -7,6 +7,7 @@ import android.graphics.ImageDecoder;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
@@ -17,9 +18,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Calendar;
 
-import static thegoodcompany.aetate.ui.MainActivity.LOG_D;
-import static thegoodcompany.aetate.ui.MainActivity.LOG_I;
-import static thegoodcompany.aetate.ui.MainActivity.LOG_V;
+import static thegoodcompany.aetate.utilities.Logging.LOG_D;
+import static thegoodcompany.aetate.utilities.Logging.LOG_I;
+import static thegoodcompany.aetate.utilities.Logging.LOG_V;
 
 //TODO Figure out a way to reduce the time takes to load a avatar; or do it on another thread
 public class Avatar {
@@ -39,7 +40,7 @@ public class Avatar {
         mContext = context;
     }
 
-    public Avatar(Context context, Bitmap avatarImage) {
+    public Avatar(Context context, @NonNull Bitmap avatarImage) {
         if (LOG_V) Log.v(LOG_TAG, "Creating avatar from bitmap");
 
         mContext = context;
@@ -48,6 +49,7 @@ public class Avatar {
         prepare();
     }
 
+    @NonNull
     public static Avatar retrieveAvatar(Context context, String avatarFileName) {
         Avatar avatar = new Avatar(context);
         avatar.mAvatarFileName = avatarFileName;
@@ -56,7 +58,8 @@ public class Avatar {
         return avatar;
     }
 
-    public static Avatar makeCopy(Avatar avatar) {
+    @NonNull
+    public static Avatar makeCopy(@NonNull Avatar avatar) {
         Avatar newAvatar = new Avatar(avatar.mContext);
         newAvatar.mAvatarFileName = avatar.getAvatarFileName();
         newAvatar.loadAvatarBitmap();
@@ -108,7 +111,7 @@ public class Avatar {
     }
 
     public void storePermanently() {
-        Calendar start;
+        Calendar start = null;
         if (LOG_D) start = Calendar.getInstance();
 
         if (LOG_V) Log.v(LOG_TAG, "Storing avatar image permanently");
@@ -170,7 +173,7 @@ public class Avatar {
 
     }
 
-    private String generatePngFileName(File dir) {
+    private String generatePngFileName(File dest) {
         if (LOG_V) Log.v(LOG_TAG, "Generating png file name");
 
         String uniqueName;
@@ -179,12 +182,12 @@ public class Avatar {
         do {
             rand = (int) (Math.random() * 100000);
             uniqueName = rand + ".png";
-        } while (!isUniqueFileName(uniqueName, dir));
+        } while (!isUniqueFileName(uniqueName, dest));
 
         return uniqueName;
     }
 
-    private boolean isUniqueFileName(String name, File dir) {
+    private boolean isUniqueFileName(String name, @NonNull File dir) {
         boolean isMatched = false;
 
         String[] existingNames = dir.list();
@@ -221,7 +224,7 @@ public class Avatar {
     }
 
     public boolean deleteAvatarFile() {
-        Calendar start;
+        Calendar start = null;
         if (LOG_D) start = Calendar.getInstance();
 
         if (LOG_V) Log.v(LOG_TAG, "Attempting to delete avatar image file");
