@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item name="explanation_avatar_pick_permission" type="id" />
+    <item name="action_set_reminder" type="id" />
+    <item name="menu_settings" type="id" />
 </resources>

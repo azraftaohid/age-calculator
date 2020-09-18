@@ -11,7 +11,7 @@
     <string name="set_birthday_hint">MM/DD/YYYY</string>
     <string name="short_date_format">%d/%d/%d</string>
     <string name="cancel">Cancel</string>
-    <string name="add_profile_dialog_tag" translatable="false">thegoodcompany.aetate.tag.addprofile</string>
+    <string name="add_profile_dialog_tag" translatable="false">thegoodkid.aetate.tag.addprofile</string>
     <string name="name">Name</string>
     <string name="invalid_name_input">Please choose a valid name</string>
     <string name="pinned">Pinned</string>
@@ -22,16 +22,16 @@
     <string name="pin">Pin to top</string>
     <string name="unpin">Unpin</string>
     <string name="ok">OK</string>
-    <string name="onboarding_tag" translatable="false">thegoodcompany.aetate.tag.onboarding</string>
-    <string name="explanation_dialog_tag" translatable="false">thegoodcompany.aetate.tag.explanation</string>
+    <string name="onboarding_tag" translatable="false">thegoodkid.aetate.tag.onboarding</string>
+    <string name="explanation_dialog_tag" translatable="false">thegoodkid.aetate.tag.explanation</string>
     <string name="delete">Remove</string>
-    <string name="left_days_birthday">Left for Birthday</string>
+    <string name="left_days_birthday">Left until Birthday</string>
     <string name="refresh">Refresh</string>
     <string name="description_pick_date">Pick a date</string>
     <string name="description_choose_avatar">Pickup an avatar</string>
     <string name="not_resolved_activity">No Application was Found to Complete the Action</string>
     <string name="modify">Modify</string>
-    <string name="modify_profile_dialog_tag" translatable="false">thegoodcompany.aetate.tag.modify</string>
+    <string name="modify_profile_dialog_tag" translatable="false">thegoodkid.aetate.tag.modify</string>
     <string name="error_message_invalid_name">Please choose a valid name</string>
     <string name="error_message_invalid_dob">Please choose a date that is before or is today\nTips: Use this date format %s</string>
     <string name="error_message_invalid_name_and_dob">Please choose a valid name and date</string>
@@ -57,4 +57,34 @@
     <string name="copied">Copied</string>
     <string name="birthday_today">It\'s their birthday</string>
     <string name="subtext_on_birthday">Send them good thoughts</string>
+    <string name="set_reminder">Set Reminder</string>
+    <string name="remind_me">Remind me</string>
+    <string name="dummies_generated">Dummy profiles has been created</string>
+    <string name="title_delete_profile">Remove</string>
+    <string name="info_profile_removed">Profile removed</string>
+    <string name="undo">Undo</string>
+    <string name="preference_key_theme">theme</string>
+    <string name="title_theme">Theme</string>
+    <string name="label_settings">Settings</string>
+    <string name="pref_key_neutral_theme" translatable="false">neutral</string>
+    <string name="pref_key_default_theme" translatable="false">default</string>
+    <string name="subtle_age_reminder">Remind me when he turns</string>
+    <string name="hint_reminder_year">Year</string>
+    <string name="hint_reminder_month">Month</string>
+    <string name="hint_reminder_day">Day</string>
+    <string name="title_set_reminder">Set Reminder</string>
+    <string name="error_message_invalid_reminder">Please select a valid age for this profile</string>
+    <string name="title_age_reminder">%s turned %d today</string>
+    <string name="info_age_reminder">His current age is %s</string>
+    <string name="label_reminder_notification_channel">Age Reminders</string>
+    <string name="description_reminder_notification_channel">Notifies when profile turns into specified age</string>
+    <string name="label_reminder_precious_button">Show more</string>
+    <string name="hint_reminder_hour">Hour</string>
+    <string name="hint_reminder_minute">Minute</string>
+    <string name="hint_reminder_second">Second</string>
+    <string name="title_age_reminder_public">You\'ve age reminder set for someone</string>
+    <string name="info_age_reminder_public">Tap to view.</string>
+    <string name="title_age_reminder_summery">You have few age reminders</string>
+    <string name="info_age_reminder_summery">Tap to view details.</string>
+    <string name="description_divider">Divider</string>
 </resources>

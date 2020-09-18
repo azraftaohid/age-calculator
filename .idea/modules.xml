@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/age-calculator.iml" filepath="$PROJECT_DIR$/.idea/modules/age-calculator.iml" group="age-calculator" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/age-calculator-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/age-calculator-app.iml" group="age-calculator/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="age-calculator/app" />
     </modules>
   </component>
 </project>

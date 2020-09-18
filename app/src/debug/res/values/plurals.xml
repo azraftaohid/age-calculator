@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="dummies_generated">
+        <item quantity="one">Dummy profile created</item>
+        <item quantity="other">Dummy profiles has been created</item>
+    </plurals>
+</resources>

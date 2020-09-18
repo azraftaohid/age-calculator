@@ -4,4 +4,5 @@
     <color name="default_avatar_background">@color/fluentui_gray_700</color>
     <color name="add_photo_background">@color/fluentui_communication_tint_20</color>
     <color name="add_photo_foreground">@color/fluentui_gray_500</color>
+    <color name="error_color">#c0091f</color>
 </resources>

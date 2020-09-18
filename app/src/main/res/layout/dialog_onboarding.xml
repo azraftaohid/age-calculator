@@ -1,43 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="?attr/fluentuiDialogBackgroundColor"
-    android:paddingTop="32dp">
+    android:layout_height="match_parent">
 
-    <ImageView
-        android:id="@+id/imageView4"
-        android:layout_width="192dp"
-        android:layout_height="192dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="32dp"
-        android:layout_marginBottom="32dp"
-        android:contentDescription="@string/description_launcher_icon"
-        app:srcCompat="@drawable/ic_launcher_foreground_no_padding" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
+    <LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"
-        android:ellipsize="none"
-        android:maxLines="3"
-        android:scrollHorizontally="false"
-        android:text="@string/app_description_wrapped"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.FluentUI.Caption" />
+        android:background="?attr/fluentuiDialogBackgroundColor"
+        android:orientation="vertical"
+        android:paddingTop="32dp">
 
-    <Button
-        android:id="@+id/bt_get_started"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="32dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:text="@string/get_started" />
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="192dp"
+            android:layout_height="192dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="32dp"
+            android:contentDescription="@string/description_launcher_icon"
+            app:srcCompat="@drawable/ic_launcher_foreground_no_padding" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:ellipsize="none"
+            android:maxLines="3"
+            android:scrollHorizontally="false"
+            android:text="@string/app_description_wrapped"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.FluentUI.Caption" />
+
+        <Button
+            android:id="@+id/bt_get_started"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="32dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="@string/get_started" />
+
+    </LinearLayout>
+
+</ScrollView>

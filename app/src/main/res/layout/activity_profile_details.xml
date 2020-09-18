@@ -2,11 +2,10 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/root_view_profile_details"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="thegoodcompany.aetate.ui.ProfileDetailsActivity">
+    tools:context=".ui.ProfileDetailsActivity">
 
     <com.microsoft.fluentui.appbarlayout.AppBarLayout
         android:id="@+id/app_bar"
@@ -19,15 +18,16 @@
             android:id="@+id/profile_basic_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="@dimen/fluentui_toolbar_title_margin_start_with_avatar"
+            android:paddingStart="@dimen/fluentui_toolbar_padding_start_with_avatar"
             android:paddingTop="24dp"
-            android:paddingEnd="@dimen/fluentui_toolbar_title_margin_start_with_avatar"
+            android:paddingEnd="@dimen/fluentui_toolbar_padding_start_with_avatar"
             android:paddingBottom="24dp">
 
             <com.microsoft.fluentui.persona.AvatarView
                 android:id="@+id/avatar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/default_view_margin"
                 app:avatarSize="xxlarge"
                 tools:src="@tools:sample/avatars" />
 
@@ -73,13 +73,42 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <com.microsoft.fluentui.view.MSRecyclerView
-            android:id="@+id/container"
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:itemCount="6"
-            tools:listitem="@layout/view_list_item" />
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/base_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.microsoft.fluentui.view.MSRecyclerView
+                    android:id="@+id/container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:itemCount="6"
+                    tools:listitem="@layout/view_list_item" />
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@string/description_divider"
+                    android:src="@drawable/ms_row_divider" />
+
+                <com.microsoft.fluentui.listitem.ListItemView
+                    android:id="@+id/delete"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:foregroundTint="@color/delete_item_foreground_tint"
+                    app:customViewSize="small"
+                    app:title="@string/title_delete_profile" />
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

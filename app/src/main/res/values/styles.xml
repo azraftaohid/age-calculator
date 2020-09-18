@@ -8,24 +8,56 @@
         <item name="android:background">@null</item>
         <item name="android:statusBarColor">?android:colorPrimary</item>
         <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="preferenceTheme">@style/AppTheme.PreferenceScreen</item>
+    </style>
+
+    <style name="Base.AppTheme.Neutral" parent="ThemeOverlay.FluentUI.NeutralAppBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">?attr/fluentuiBackgroundColor</item>
+        <item name="android:background">@null</item>
+        <item name="android:statusBarColor">?attr/fluentuiBackgroundColor</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+        <item name="preferenceTheme">@style/AppTheme.PreferenceScreen</item>
     </style>
 
     <style name="AppTheme" parent="Base.AppTheme" />
 
-    <style name="AppTheme.EditText" parent="Widget.AppCompat.EditText">
-        <item name="android:layout_marginStart">16dp</item>
-        <item name="android:layout_marginTop">16dp</item>
-        <item name="android:layout_marginEnd">16dp</item>
+    <style name="AppTheme.Neutral" parent="Base.AppTheme.Neutral" />
+
+    <style name="AppTheme.PreferenceScreen.ListFragment" parent="PreferenceFragmentList.Material">
+        <item name="android:background">?attr/fluentuiBackgroundColor</item>
+    </style>
+
+    <style name="AppTheme.PreferenceScreen.Dialog" parent="Preference.DialogPreference.Material">
+        <item name="android:background">?attr/fluentuiDialogBackgroundColor</item>
+    </style>
+
+    <style name="AppTheme.PreferenceScreen" parent="PreferenceThemeOverlay">
+        <item name="android:dialogPreferenceStyle">@style/AppTheme.PreferenceScreen.Dialog</item>
+        <item name="preferenceFragmentListStyle">@style/AppTheme.PreferenceScreen.ListFragment
+        </item>
+    </style>
+
+    <style name="Base.Dialog.AppTheme" parent="Theme.AppCompat.DayNight.Dialog.Alert">
+        <item name="colorAccent">@color/fluentui_communication_blue</item>
+    </style>
+
+    <style name="Dialog.AppTheme" parent="Base.Dialog.AppTheme" />
+
+    <style name="Base.Widget.AppTheme.EditText" parent="Widget.AppCompat.EditText">
+        <item name="backgroundTint">@color/edit_text_background_tint</item>
         <item name="android:textColorHint">?attr/fluentuiPeoplePickerHintTextColor</item>
     </style>
 
+    <style name="Widget.AppTheme.EditText" parent="Base.Widget.AppTheme.EditText" />
+
+    <style name="Dialog.AppTheme.EditText" parent="Widget.AppTheme.EditText">
+        <item name="backgroundTint">@color/edit_text_background_tint_dialog</item>
+    </style>
+
     <style name="TextAppearance.Error" parent="TextAppearance.FluentUI.Caption">
-        <item name="android:textColor">?attr/colorError</item>
+        <item name="android:textColor">?attr/fluentuiPersonaChipTextErrorColor</item>
     </style>
 
-    <style name="Base.AppTheme.Dialog" parent="Dialog.FluentUI">
-        <item name="android:windowBackground">?attr/fluentuiBackgroundColor</item>
-    </style>
-
-    <style name="Dialog.AppTheme" parent="Base.AppTheme.Dialog" />
 </resources>

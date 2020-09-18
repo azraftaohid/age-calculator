@@ -14,5 +14,7 @@
         </shape>
     </item>
 
-    <item android:drawable="@drawable/ic_fluent_person_24_filled" />
+    <item
+        android:id="@+id/default_avatar_person"
+        android:drawable="@drawable/ic_fluent_person_24_filled" />
 </layer-list>

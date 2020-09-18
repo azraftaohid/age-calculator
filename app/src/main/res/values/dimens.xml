@@ -5,4 +5,5 @@
     <dimen name="default_layout_margin">16dp</dimen>
     <dimen name="fab_margin_bottom">24dp</dimen>
     <dimen name="related_views_margin">8dp</dimen>
+    <dimen name="more_action_icon_size">16dp</dimen>
 </resources>

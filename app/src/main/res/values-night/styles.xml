@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="AppTheme" parent="Base.AppTheme">
         <item name="android:statusBarColor">?attr/fluentuiBackgroundSecondaryColor</item>
     </style>
 
-    <style name="Dialog.AppTheme" parent="Base.AppTheme.Dialog">
-        <item name="android:background">?attr/fluentuiBackgroundSecondaryColor</item>
+    <style name="AppTheme.Neutral" parent="Base.AppTheme.Neutral">
+        <item name="android:statusBarColor">?attr/fluentuiBackgroundSecondaryColor</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
     </style>
+
+    <style name="Dialog.AppTheme" parent="Base.Dialog.AppTheme">
+        <item name="android:background">?attr/fluentuiDialogBackgroundColor</item>
+        <item name="checkboxStyle">@style/Widget.FluentUI.CheckBox</item>
+    </style>
+
 </resources>
